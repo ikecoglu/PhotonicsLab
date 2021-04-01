@@ -1,0 +1,37 @@
+Point1= 997;
+Point2 = 1002;
+n=1;
+a=355;
+peak1=find(Calx(1,:,1)==Point1);
+peak1=peak1-n:peak1+n;
+peak2=find(Calx(1,:,1)==Point2);
+peak2=peak2-n:peak2+n;
+
+HEC =mean(hec(1:a,peak1),2)./mean(hec(1:a,peak2),2);
+HELA =mean(hela(1:a,peak1),2)./mean(hela(1:a,peak2),2);
+HT = mean(ht(1:a,peak1),2)./mean(ht(1:a,peak2),2);
+THP =mean(thp(1:a,peak1),2)./mean(thp(1:a,peak2),2);
+THP10 =mean(thp10(1:a,peak1),2)./mean(thp10(1:a,peak2),2);
+THP25 =mean(thp25(1:a,peak1),2)./mean(thp25(1:a,peak2),2);
+THP50 =mean(thp50(1:a,peak1),2)./mean(thp50(1:a,peak2),2);
+THP100 =mean(thp100(1:a,peak1),2)./mean(thp100(1:a,peak2),2);
+DATA = [HEC;HELA;HT;THP;THP10;THP25;THP50;THP100];
+L1 = repmat({'HEC1A'},a,1);
+L2 = repmat({'HeLa'},a,1);
+L3 = repmat({'HT1080'},a,1);
+L4 = repmat({'THP'},a,1);
+L5 = repmat({'THP10'},a,1);
+L6 = repmat({'THP25'},a,1);
+L7 = repmat({'THP50'},a,1);
+L8 = repmat({'THP100'},a,1);
+L = [L1;L2;L3;L4;L5;L6;L7;L8];
+
+boxplot(DATA,L);
+set(gca,'FontSize',12);
+title(strcat('Peak: ',num2str(Point1),'/',num2str(Point2)));
+xlabel('Cell Lines');
+ylabel('Normalized Raman Intensity (a. u)');
+% ylim([0 2]);
+set(gcf, 'Position', get(0, 'Screensize'));
+saveas(gcf,fullfile('C:\Users\ibrah\Desktop\New folder',strcat('Peak_ ',num2str(Point1),'-',num2str(Point2),'.png')));
+pause(1);
