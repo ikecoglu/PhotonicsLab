@@ -43,6 +43,9 @@ title(strcat('Peak: ',num2str(Point)));
 xlabel('Cell Lines');
 ylabel('Normalized Raman Intensity (a. u)');
 set(gcf, 'Position', get(0, 'Screensize'));
-saveas(gcf,fullfile('C:\Users\ibrah\Desktop\New folder',strcat('Peak_ ',num2str(Point),'.png')));
+if ~exist('~/Workspace/PhotonicsLab/BoxChart/', 'dir')
+    mkdir('~/Workspace/PhotonicsLab/BoxChart')
+end
+saveas(gcf,fullfile('~/Workspace/PhotonicsLab/BoxChart/',strcat('Peak_ ',num2str(Point),'.png')));
 pause(1);
 close;
