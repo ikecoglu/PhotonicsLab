@@ -1,9 +1,9 @@
 clear all;clc;close all;
-%% Fixed Basepoints
-%only determines interval to cut so only the first and the last ones are
-%important.
-basePoints=[0,680,733,769,945,1091,1204,1410,1548,1670,1790,1858,1918,2048,2096,2179,2300];
-%% importing data 
+%% Cutting interval
+
+StartFinish=[0, 2300];
+%% Importing data
+
 [fileName, pathName] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
 FileName=fullfile(pathName,fileName);
 dataSize=length(FileName);
@@ -12,23 +12,28 @@ for i=1:dataSize
     disp(strcat("Importing data: ",int2str((i/dataSize)*100),"%"));
     spec(i,:,:)=dlmread(FileName{1,i,:},",");
 end
-%% calibrate data
+%% Raman Shift Conversion and Calibration
 
-spec=RamanShiftConverter(dataSize,spec);
-[Sx,SInt]=AxisCorr(dataSize,spec);
+RSspec=RamanShiftConverter(dataSize,spec);
+[Sx,SInt]=AxisCorr(dataSize,RSspec);
+%% Cutting
 
-CalInt=SInt(:,find(Sx(1,:)==min(basePoints)):find(Sx(1,:)==max(basePoints)));
-Calx=Sx(1,find(Sx(1,:)==min(basePoints)):find(Sx(1,:)==max(basePoints)));
+CalInt=SInt(:,find(Sx(1,:)==StartFinish(1)):find(Sx(1,:)==StartFinish(2)));
+Calx=Sx(1,find(Sx(1,:)==StartFinish(1)):find(Sx(1,:)==StartFinish(2)));
+%% Plotting
 
+figure
 set(gcf,'renderer','painters');
 for i=1:dataSize
-plot(Calx,CalInt(i,:));
-hold on;
+    plot(Calx,CalInt(i,:));
+    hold on;
 end
-%% save data
+%% Save data
+
 up = strfind(pathName,filesep);
 pathName = pathName(1:up(end-1)-1);
-path=uigetdir(pathName,'Select where to save calibrated data.');
+% path=uigetdir(pathName,'Select where to save calibrated data.');
+path=pathName;
 mkdir(path,'CAL');
 PathCAL=strcat(path,'/CAL/');
 for i=1:dataSize
@@ -37,4 +42,10 @@ for i=1:dataSize
     M(:,1)=Calx;
     M(:,2)=CalInt(i,:);
     dlmwrite(fullfile(PathCAL,fileName{i}),M);
+end
+%% Alarm
+
+for i=1:3
+    sound(sin(1:10000));
+    pause(2)
 end
