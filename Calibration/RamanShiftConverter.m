@@ -2,8 +2,8 @@ function [spec] = RamanShiftConverter(dataSize,spec)
 for i=1:dataSize
     clc;
     disp(strcat("Raman shift conversion: ",int2str((i/dataSize)*100),"%"));
-    Rx=spec(i,1:40,1);
-    Ry=spec(i,1:40,2);
+    Rx=spec(i,1:20,1);
+    Ry=spec(i,1:20,2);
     [f,~] = Fit(Rx, Ry);
 %       plot(f);
 %       hold on;
