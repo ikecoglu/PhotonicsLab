@@ -1,9 +1,11 @@
 clear all;close all; clc;
 %% User input
-Length=30; %legth of a side of scanned square. Unit is how many our step so actually legth/stepsize.
-Point2map=1003;%the raman shift that is going to be mapped in 3d plot.
+
+Length=60; %legth of a side of scanned square. Unit is how many our step so actually legth/stepsize.
+Point2map=524;%the raman shift that is going to be mapped in 3d plot.
 n=2;%averaging window size.
 %% Reading data
+
 [fileName, pathName] = uigetfile('*.*','Select data to map.','MultiSelect', 'on');
 FileName=fullfile(pathName,fileName);
 dataSize=length(FileName);
@@ -13,6 +15,7 @@ for i=1:dataSize
     data(i,:,:)=dlmread(FileName{1,i,:},",");
 end
 %% Process
+
 peak=find(data(1,:,1)==Point2map);
 peak=peak-n:peak+n;
 i=0;b=0;counter=0;Gx=Length;Gy=Length;
@@ -49,4 +52,5 @@ imagesc(img);
 % set(gcf,'renderer','painters');
 % saveas(gcf,'C:\Users\ibrah\Desktop\Map.emf');close;
 %% Notes from the writer of the code
+
 clc;disp('Always check whether the scanning direction of image created is same as the scanning you have done.')
