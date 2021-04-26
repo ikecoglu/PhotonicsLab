@@ -31,8 +31,10 @@ end
 
 up = strfind(pathName,filesep);
 pathName = pathName(1:up(end-1)-1);
+
 % path=uigetdir(pathName,'Select where to save calibrated data.');
 path=pathName;
+
 mkdir(path,'CAL');
 PathCAL=strcat(path,'/CAL/');
 for i=1:dataSize
