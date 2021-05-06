@@ -3,8 +3,8 @@ clear all;clc;close all;
 
 StartFinish=[0, 2300];
 %% importing data
-[fileName, pathName] = uigetfile('*.*','Select data.','MultiSelect', 'on');
-FileName=fullfile(pathName,fileName);
+[fileName, path] = uigetfile('*.*','Select data.','MultiSelect', 'on');
+FileName=fullfile(path,fileName);
 dataSize=length(FileName);
 for i=1:dataSize
     clc;
@@ -28,21 +28,20 @@ for i=1:dataSize
     hold on;
 end
 %% Save data
-
-up = strfind(pathName,filesep);
-pathName = pathName(1:up(end-1)-1);
-
-% path=uigetdir(pathName,'Select where to save calibrated data.');
-path=pathName;
+mkdir(path,'RAW');
+pathRaw = strcat(path,'RAW/');
+for i=1:dataSize
+    movefile(FileName{i},pathRaw)
+end
 
 mkdir(path,'CAL');
-PathCAL=strcat(path,'/CAL/');
+pathCal=strcat(path,'CAL/');
 for i=1:dataSize
     clc;
     disp(strcat("Saving data: ",int2str((i/dataSize)*100),"%"));
     M(:,1)=Calx;
     M(:,2)=CalInt(i,:);
-    dlmwrite(fullfile(PathCAL,fileName{i}),M);
+    dlmwrite(fullfile(pathCal,fileName{i}),M);
 end
 %% Alarm
 
