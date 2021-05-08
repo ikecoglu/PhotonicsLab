@@ -1,7 +1,4 @@
-clear all;clc;close all;
-%% Cutting interval
-
-StartFinish=[0, 2300];
+clear all;close all;clc;
 %% importing data
 [fileName, path] = uigetfile('*.*','Select data.','MultiSelect', 'on');
 FileName=fullfile(path,fileName);
@@ -14,19 +11,19 @@ end
 %% Raman Shift Conversion and Calibration
 
 RSspec=RamanShiftConverter(dataSize,spec);
-[Sx,SInt]=AxisCorr(dataSize,RSspec);
-%% Cutting
-
-Calx=Sx(1,find(Sx(1,:)==min(StartFinish)):find(Sx(1,:)==max(StartFinish)));
-CalInt=SInt(:,find(Sx(1,:)==min(StartFinish)):find(Sx(1,:)==max(StartFinish)));
+[Calx,CalInt]=AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
 %% Plotting
 
 figure
-set(gcf,'renderer','painters');
 for i=1:dataSize
     plot(Calx,CalInt(i,:));
     hold on;
 end
+xlabel('Raman Shift (cm^{-1})','FontSize',13)
+ylabel('Normalized Intensity (a.u.)','FontSize',13)
+box on;
+set(gca,'FontSize',13,'LineWidth',2);
+set(gcf,'renderer','painters');
 %% Save data
 mkdir(path,'RAW');
 pathRaw = strcat(path,'RAW/');
@@ -44,8 +41,8 @@ for i=1:dataSize
     dlmwrite(fullfile(pathCal,fileName{i}),M);
 end
 %% Alarm
-
-for i=1:3
-    sound(sin(1:10000));
-    pause(2)
-end
+% 
+% for i=1:3
+%     sound(sin(1:10000));
+%     pause(2)
+% end

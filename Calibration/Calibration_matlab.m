@@ -1,7 +1,4 @@
-clear all;clc;close all;
-%% Cutting interval
-
-StartFinish=[0, 2300];
+clear all;close all;clc;
 %% Importing data
 
 [fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
@@ -15,19 +12,19 @@ end
 %% Raman Shift Conversion and Calibration
 
 RSspec=RamanShiftConverter(dataSize,spec);
-[Sx,SInt]=AxisCorr(dataSize,RSspec);
-%% Cutting
-
-CalInt=SInt(:,find(Sx(1,:)==StartFinish(1)):find(Sx(1,:)==StartFinish(2)));
-Calx=Sx(1,find(Sx(1,:)==StartFinish(1)):find(Sx(1,:)==StartFinish(2)));
+[Calx,CalInt]=AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
 %% Plotting
 
 figure
-set(gcf,'renderer','painters');
 for i=1:dataSize
     plot(Calx,CalInt(i,:));
     hold on;
 end
+xlabel('Raman Shift (cm^{-1})','FontSize',13)
+ylabel('Normalized Intensity (a.u.)','FontSize',13)
+box on;
+set(gca,'FontSize',13,'LineWidth',2);
+set(gcf,'renderer','painters');
 %% Save data
 mkdir(path,'RAW');
 pathRaw = strcat(path,'RAW/');
