@@ -2,12 +2,13 @@ clear all;close all;clc;
 %% Importing data
 
 [fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
+dataSize=length(fileName);
 FileName=fullfile(path,fileName);
-dataSize=length(FileName);
+name = fileName{1}(1:length(fileName{1})-1);
 for i=1:dataSize
     clc;
-    disp(strcat("Importing data: ",int2str((i/dataSize)*100),"%"));
-    spec(i,:,:)=dlmread(FileName{1,i,:},",");
+    disp(["Importing data: " num2str((i/dataSize)*100) "% - " fullfile(path,num2str(i))]);
+    spec(i,:,:)=dlmread(fullfile(path, [name num2str(i)]), ",");
 end
 %% Raman Shift Conversion and Calibration
 
@@ -27,20 +28,13 @@ set(gca,'FontSize',13,'LineWidth',2);
 set(gcf,'renderer','painters');
 %% Save data
 mkdir(path,'RAW');
-pathRaw = strcat(path,'RAW/');
+pathRaw = fullfile(path,'RAW/');
 for i=1:dataSize
     movefile(FileName{i},pathRaw)
 end
 
-mkdir(path,'CAL');
-pathCal=strcat(path,'CAL/');
-for i=1:dataSize
-    clc;
-    disp(strcat("Saving data: ",int2str((i/dataSize)*100),"%"));
-    M(:,1)=Calx;
-    M(:,2)=CalInt(i,:);
-    dlmwrite(fullfile(pathCal,fileName{i}),M);
-end
+save(fullfile(path,'CAL.mat'),'Calx','CalInt')
+writematrix([Calx; CalInt], fullfile(path,'CAL.csv'))
 %% Alarm
 
 for i=1:3

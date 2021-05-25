@@ -20,26 +20,19 @@ for i=1:dataSize
     hold on;
 end
 xlabel('Raman Shift (cm^{-1})','FontSize',13)
-ylabel('Normalized Intensity (a.u.)','FontSize',13)
+ylabel('Intensity (a.u.)','FontSize',13)
 box on;
 set(gca,'FontSize',13,'LineWidth',2);
 set(gcf,'renderer','painters');
 %% Save data
 mkdir(path,'RAW');
-pathRaw = strcat(path,'RAW/');
+pathRaw = fullfile(path,'RAW/');
 for i=1:dataSize
     movefile(FileName{i},pathRaw)
 end
 
-mkdir(path,'CAL');
-pathCal=strcat(path,'CAL/');
-for i=1:dataSize
-    clc;
-    disp(strcat("Saving data: ",int2str((i/dataSize)*100),"%"));
-    M(:,1)=Calx;
-    M(:,2)=CalInt(i,:);
-    dlmwrite(fullfile(pathCal,fileName{i}),M);
-end
+save(fullfile(path,'CAL.mat'),'Calx','CalInt')
+writematrix([Calx; CalInt], fullfile(path,'CAL.csv'))
 %% Alarm
 % 
 % for i=1:3
