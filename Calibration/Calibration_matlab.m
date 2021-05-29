@@ -16,11 +16,7 @@ RSspec=RamanShiftConverter(dataSize,spec);
 [Calx,CalInt]=AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
 %% Plotting
 
-figure
-for i=1:dataSize
-    plot(Calx,CalInt(i,:));
-    hold on;
-end
+plot(Calx,CalInt);
 xlabel('Raman Shift (cm^{-1})','FontSize',13)
 ylabel('Normalized Intensity (a.u.)','FontSize',13)
 box on;
