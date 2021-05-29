@@ -14,8 +14,9 @@ end
 RSspec=RamanShiftConverter(dataSize,spec);
 [Calx,CalInt]=AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
 %% Cutting
-start = find(Calx==0);
-stop = find(Calx==2300);
+
+start = find(Calx == 0);
+stop = find(Calx == 2300);
 
 CalInt = CalInt(:,start:stop);
 Calx = Calx(start:stop);
