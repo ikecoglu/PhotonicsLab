@@ -1,4 +1,4 @@
-clear all;close all;clc;
+clear all; close all; clc;
 %% importing data
 
 [fileName, path] = uigetfile('*.*','Select data.','MultiSelect', 'on');
