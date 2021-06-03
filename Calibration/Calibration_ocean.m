@@ -15,8 +15,8 @@ RSspec=RamanShiftConverter(dataSize,spec);
 [Calx,CalInt]=AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
 %% Cutting
 
-start = find(Calx == 0);
-stop = find(Calx == 2300);
+start = find(Calx == 200);
+stop = find(Calx == 1800);
 
 CalInt = CalInt(:,start:stop);
 Calx = Calx(start:stop);
@@ -31,12 +31,18 @@ set(gcf,'renderer','painters');
 %% Save data
 mkdir(path,'RAW');
 pathRaw = fullfile(path,'RAW/');
+Tbl = table;
+Tbl.X = Calx';
 for i=1:dataSize
     movefile(FileName{i},pathRaw)
+    
+    name = ['y' num2str(i)];
+    Tbl.(name) = CalInt(i,:)';
 end
 
 save(fullfile(path,'CAL.mat'),'Calx','CalInt')
-writematrix([Calx; CalInt], fullfile(path,'CAL.csv'))
+
+writetable(Tbl, fullfile(path,'CAL.csv'))
 %% Alarm
 
 for i=1:1
