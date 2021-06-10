@@ -180,10 +180,10 @@ for k = 1:num_of_step_B + 1
         cur_position1 = state_s1.CurPosition;
         cur_uposition1 = state_s1.uCurPosition;
         next_pos1 = cur_position1 + step;
-        next_upos1 = cur_uposition2 + ustep;
+        next_upos1 = cur_uposition1 + ustep;
         if next_upos1 >= 256
             next_upos1 = mod(next_upos1, 256);
-            next_pos2 = next_pos2 + 1;
+            next_pos1 = next_pos1 + 1;
         end
         result1 = calllib('libximc','command_move', device_id1, next_pos1, next_upos1);
         result1 = calllib('libximc','command_wait_for_stop', device_id1, 10);
