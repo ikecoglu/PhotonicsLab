@@ -7,7 +7,7 @@ FileName=fullfile(path,fileName);
 name = fileName{1}(1:length(fileName{1})-1);
 for i=1:dataSize
     clc;
-    disp(["Importing data: " num2str((i/dataSize)*100) "% - " fullfile(path,num2str(i))]);
+    disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", [name num2str(i)]));
     spec(i,:,:)=dlmread(fullfile(path, [name num2str(i)]), ",");
 end
 %% Raman Shift Conversion and Calibration
@@ -17,7 +17,7 @@ RSspec=RamanShiftConverter(dataSize,spec);
 %% Cutting
 
 start = find(Calx == 0);
-stop = find(Calx == 2300);
+stop = find(Calx == 2500);
 
 CalInt = CalInt(:,start:stop);
 Calx = Calx(start:stop);

@@ -26,7 +26,7 @@ PSDx=BlockAveraging(PSDx,WindowSize);
 figure
 subplot(2,2,1)
 histfit(data.x,100);
-xlabel('Position')
+xlabel('Position')minsearch(fit_err
 ylabel('Count')
 subplot(2,2,3)
 plot(freq/1000,PSDx);
