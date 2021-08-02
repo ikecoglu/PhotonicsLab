@@ -6,7 +6,7 @@ dataSize=length(fileName);
 FileName=fullfile(path,fileName);
 name = fileName{1}(1:length(fileName{1})-1);
 for i=1:dataSize
-    clc;
+%     clc;
     disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", [name num2str(i)]));
     spec(i,:,:)=dlmread(fullfile(path, [name num2str(i)]), ",");
 end
@@ -30,14 +30,28 @@ box on;
 set(gca,'FontSize',13,'LineWidth',2);
 set(gcf,'renderer','painters');
 %% Save data
-mkdir(path,'RAW');
-pathRaw = fullfile(path,'RAW/');
+% mkdir(path,'RAW');
+% pathRaw = fullfile(path,'RAW/');
+% for i=1:dataSize
+%     movefile(FileName{i},pathRaw)
+% end
+% 
+% save(fullfile(path,'CAL.mat'),'Calx','CalInt')
+% writematrix([Calx; CalInt], fullfile(path,'CAL.csv'))
+%% Save data
+Tbl = table;
+Tbl.X = Calx';
 for i=1:dataSize
-    movefile(FileName{i},pathRaw)
+    name = ['y' num2str(i)];
+    Tbl.(name) = CalInt(i,:)';
 end
 
-save(fullfile(path,'CAL.mat'),'Calx','CalInt')
-writematrix([Calx; CalInt], fullfile(path,'CAL.csv'))
+Splited = split(path, filesep);
+name= char(Splited(end-1))
+pathup = path(1:end-length(name)-1)
+
+save([pathup name '.mat'],'Calx','CalInt')
+writetable(Tbl, [pathup name '.csv'])
 %% Alarm
 
 for i=1:3
