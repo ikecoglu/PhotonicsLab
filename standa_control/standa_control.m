@@ -10,8 +10,8 @@ IntTime = 1e6; % in terms of microsecond
 % don't touch this part
 step = (StepSize - mod(StepSize, 256) ) / 256;
 ustep = mod(StepSize, 256);
-speed=1000;
-uspeed=1000;
+speed = 1000;
+uspeed = 1000;
 %% Spectrometer
 
 wrapper = com.oceanoptics.omnidriver.api.wrapper.Wrapper();
@@ -116,6 +116,8 @@ start_uposition2 = state_s2.uCurPosition;
 %% Scanning
 
 spectrum= wrapper.getSpectrum(0);%trash spectrum
+max_spec = zeros(1, length(spectrum));
+min_spec = repmat(50000, 1, length(spectrum));
 
 count = 1;
 [FileName,PathName] = uiputfile('*');
@@ -145,6 +147,14 @@ for k = 1:num_of_step_B + 1
             
             spectrum = wrapper.getSpectrum(0);
             wl = wrapper.getWavelengths(0);
+            
+            log_max = spectrum > max_spec;
+            log_min = spectrum < min_spec;
+            max_spec(log_max) = spectrum(log_max);
+            min_spec(log_min) = spectrum(log_min);
+            plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
+            legend('Max', 'Current', 'Min')
+            
             spec = [wl, spectrum];
             filename = strcat(FileName,num2str(count));
             dlmwrite(fullfile(PathName,filename),spec,'delimiter',',');
@@ -168,6 +178,14 @@ for k = 1:num_of_step_B + 1
             
             spectrum = wrapper.getSpectrum(0);
             wl = wrapper.getWavelengths(0);
+            
+            log_max = spectrum > max_spec;
+            log_min = spectrum < min_spec;
+            max_spec(log_max) = spectrum(log_max);
+            min_spec(log_min) = spectrum(log_min);
+            plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
+            legend('Max', 'Current', 'Min')
+            
             spec = [wl, spectrum];
             filename = strcat(FileName,num2str(count));
             dlmwrite(fullfile(PathName,filename),spec,'delimiter',',');
@@ -190,6 +208,14 @@ for k = 1:num_of_step_B + 1
         
         spectrum = wrapper.getSpectrum(0);
         wl = wrapper.getWavelengths(0);
+        
+        log_max = spectrum > max_spec;
+        log_min = spectrum < min_spec;
+        max_spec(log_max) = spectrum(log_max);
+        min_spec(log_min) = spectrum(log_min);
+        plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
+        legend('Max', 'Current', 'Min')
+        
         spec = [wl, spectrum];
         filename = strcat(FileName,num2str(count));
         dlmwrite(fullfile(PathName,filename),spec,'delimiter',',');
