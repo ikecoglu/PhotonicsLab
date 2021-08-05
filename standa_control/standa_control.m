@@ -1,4 +1,4 @@
-clear; clc;
+clear; close all; clc;
 %% Parameters
 % 1 step = 256 ustep | 1 step = 2.5 um
 
@@ -116,8 +116,8 @@ start_uposition2 = state_s2.uCurPosition;
 %% Scanning
 
 spectrum= wrapper.getSpectrum(0);%trash spectrum
-max_spec = zeros(1, length(spectrum));
-min_spec = repmat(50000, 1, length(spectrum));
+max_spec = zeros(length(spectrum), 1);
+min_spec = repmat(50000, length(spectrum), 1);
 
 count = 1;
 [FileName,PathName] = uiputfile('*');
@@ -154,6 +154,7 @@ for k = 1:num_of_step_B + 1
             min_spec(log_min) = spectrum(log_min);
             plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
             legend('Max', 'Current', 'Min')
+            pause(0.0001)
             
             spec = [wl, spectrum];
             filename = strcat(FileName,num2str(count));
@@ -185,6 +186,7 @@ for k = 1:num_of_step_B + 1
             min_spec(log_min) = spectrum(log_min);
             plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
             legend('Max', 'Current', 'Min')
+            pause(0.0001)
             
             spec = [wl, spectrum];
             filename = strcat(FileName,num2str(count));
@@ -215,6 +217,7 @@ for k = 1:num_of_step_B + 1
         min_spec(log_min) = spectrum(log_min);
         plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
         legend('Max', 'Current', 'Min')
+        pause(0.0001)
         
         spec = [wl, spectrum];
         filename = strcat(FileName,num2str(count));
