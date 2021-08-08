@@ -73,4 +73,3 @@ end
 name = FileName(1:end-4);
 save([Path name '_NORM.mat'], 'Calx', 'NormInt')
 writetable(Tbl, [Path name '_NORM.csv'])
-% saveData(dataSize, fileName, pathName, Calx, BCInt, NormInt);
