@@ -1,19 +1,18 @@
-clear all;close all;clc;
+clear; close all; clc;
 %% Importing data
 
 [fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
-dataSize=length(fileName);
-FileName=fullfile(path,fileName);
+dataSize = length(fileName);
 name = fileName{1}(1:length(fileName{1})-1);
 for i=1:dataSize
 %     clc;
     disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", [name num2str(i)]));
-    spec(i,:,:)=dlmread(fullfile(path, [name num2str(i)]), ",");
+    spec(i,:,:) = dlmread(fullfile(path, [name num2str(i)]), ",");
 end
 %% Raman Shift Conversion and Calibration
 
-RSspec=RamanShiftConverter(dataSize,spec);
-[Calx,CalInt]=AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
+RSspec = RamanShiftConverter(dataSize,spec);
+[Calx, CalInt] = AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
 %% Cutting
 
 start = find(Calx == 0);
@@ -23,22 +22,14 @@ CalInt = CalInt(:,start:stop);
 Calx = Calx(start:stop);
 %% Plotting
 
-plot(Calx,CalInt);
+plot(Calx, CalInt);
 xlabel('Raman Shift (cm^{-1})','FontSize',13)
-ylabel('Normalized Intensity (a.u.)','FontSize',13)
+ylabel('Raman Intensity (a.u.)','FontSize',13)
 box on;
 set(gca,'FontSize',13,'LineWidth',2);
 set(gcf,'renderer','painters');
 %% Save data
-% mkdir(path,'RAW');
-% pathRaw = fullfile(path,'RAW/');
-% for i=1:dataSize
-%     movefile(FileName{i},pathRaw)
-% end
-% 
-% save(fullfile(path,'CAL.mat'),'Calx','CalInt')
-% writematrix([Calx; CalInt], fullfile(path,'CAL.csv'))
-%% Save data
+
 Tbl = table;
 Tbl.X = Calx';
 for i=1:dataSize
@@ -47,7 +38,7 @@ for i=1:dataSize
 end
 
 Splited = split(path, filesep);
-name= char(Splited(end-1))
+name = char(Splited(end-1))
 pathup = path(1:end-length(name)-1)
 
 save([pathup name '.mat'],'Calx','CalInt')
