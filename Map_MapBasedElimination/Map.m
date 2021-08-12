@@ -1,16 +1,16 @@
 clear all;close all; clc;
 %% User input
 
-Length=60; %legth of a side of scanned square. Unit is how many our step so actually legth/stepsize.
-Point2map=1002;%the raman shift that is going to be mapped in 3d plot.
-n=2;%averaging window size.
+Length = 60; %legth of a side of scanned square. Unit is how many our step so actually legth/stepsize.
+Point2map = 1002;%the raman shift that is going to be mapped in 3d plot.
+n = 2;%averaging window size.
 %% Reading data
 
 [fileName, pathName] = uigetfile('*.mat*','Select data to map.');
 FileName = fullfile(pathName,fileName);
 load(FileName)
 dataSize = size(CalInt, 1);
-%% Process
+%% Mapping
 
 peak=find(Calx == Point2map);
 peak=peak-n:peak+n;
@@ -49,4 +49,4 @@ imagesc(img);
 % saveas(gcf,'C:\Users\ibrah\Desktop\Map.emf');close;
 %% Notes from the writer of the code
 
-clc;disp('Always check whether the scanning direction of image created is the same as the scanning you have done.')
+clc;disp('Always check the scanning direction!')
