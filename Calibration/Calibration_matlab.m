@@ -1,18 +1,28 @@
 clear; close all; clc;
-%% Importing data
+%% Importing data - Ordered
 
 [fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
 dataSize = length(fileName);
 name = fileName{1}(1:length(fileName{1})-1);
 for i=1:dataSize
-%     clc;
+    clc;
     disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", [name num2str(i)]));
     spec(i,:,:) = dlmread(fullfile(path, [name num2str(i)]), ",");
 end
+%% Importing data - Not Ordered
+% 
+% [fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
+% FileAdress = fullfile(path, fileName);
+% dataSize = length(FileAdress);
+% for i=1:dataSize
+%     clc;
+%     disp(strcat("Importing data: ",int2str((i/dataSize)*100),"% - ", fileName{i}));
+%     spec(i,:,:) = dlmread(FileAdress{1,i,:},",");
+% end
 %% Raman Shift Conversion and Calibration
 
-RSspec = RamanShiftConverter(dataSize,spec);
-[Calx, CalInt] = AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
+RSspec = RamanShiftConverter(dataSize, spec);
+[Calx, CalInt] = AxisCorr(dataSize, RSspec); Calx = Calx(1,:);
 %% Cutting
 
 start = find(Calx == 0);
