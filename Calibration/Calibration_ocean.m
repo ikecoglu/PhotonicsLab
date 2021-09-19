@@ -37,8 +37,8 @@ for i=1:dataSize
 end
 
 Splited = split(path, filesep);
-name = char(Splited(end-1))
-pathup = path(1:end-length(name)-1)
+name = char(Splited(end-1));
+pathup = path(1:end-length(name)-1);
 
 save([pathup name '.mat'],'Calx','CalInt')
 writetable(Tbl, [pathup name '.csv'])
