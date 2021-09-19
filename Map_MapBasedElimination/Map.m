@@ -6,8 +6,8 @@ Point2map = 1002;%the raman shift that is going to be mapped in 3d plot.
 n = 2;%averaging window size.
 %% Reading data
 
-[fileName, pathName] = uigetfile('*.mat*','Select data to map.');
-FileName = fullfile(pathName,fileName);
+[fileName, path] = uigetfile('*.mat*','Select data to map.');
+FileName = fullfile(path,fileName);
 load(FileName)
 dataSize = size(CalInt, 1);
 %% Mapping
@@ -39,14 +39,16 @@ while i<dataSize
         b=b+1;counter=counter+1;
     end
 end
-clear a b counter Gx Gy i
+clear a b counter Gx Gy i peak
 figure
 % colormap("gray")
 imagesc(img);
 % caxis([2700 3300])
 % figure,surf(1:size(img,1),1:size(img,2),img);
-% set(gcf,'renderer','painters');
-% saveas(gcf,'C:\Users\ibrah\Desktop\Map.emf');close;
+set(gcf,'renderer','painters');
+saveas(gcf,[path 'Map.svg']);
+saveas(gcf,[path 'Map.fig']);
+close;
 %% Notes from the writer of the code
 
 clc;disp('Always check the scanning direction!')

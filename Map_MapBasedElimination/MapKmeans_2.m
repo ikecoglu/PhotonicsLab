@@ -1,7 +1,7 @@
 clear; close all; clc;
 %% Parameters
-
-Length = 60;
+num_of_step_A = 30;
+num_of_step_B = 600;
 NumberofGroups = 4;
 Normalize_log = false;
 Cutting_log = true;
@@ -87,37 +87,40 @@ print(gcf,[path 'Kmeans_Loadings.png'],'-dpng','-r600');
 close;
 %% Mapping
 
-i=0;b=0; counter=0; Gx=Length; Gy=Length;
-img(Gy+1, Gx+1) = labels(1);
-while i < DataSize
-    a = mod(b,4);
-    if(a==0)
-        for i = counter*(Length+1)+2:(counter+1)*(Length+1)
-            Gy = Gy-1;
-            img(Gy+1, Gx+1) = labels(i);
+Gx=1;Gy=1;
+img(Gy,Gx)=labels(1);
+count = 2;
+
+direct = true;
+for k = 1:num_of_step_B + 1
+    if direct
+        for l = 1:num_of_step_A
+            Gy=Gy+1;
+            img(Gy,Gx)=labels(count);
+            count = count + 1;
         end
-        b = b+1; counter=counter+1;
-    end
-    if(a==1||a==3)
-        i = counter*(Length+1)+1;
-        Gx = Gx-1;
-        img(Gy+1, Gx+1) = labels(i);
-        b = b+1;
-    end
-    if(a==2)
-        for i = counter*(Length+1)+2:(counter+1)*(Length+1)
-            Gy = Gy+1;
-            img(Gy+1, Gx+1) = labels(i);
+        direct = false;
+    else
+        for l = 1:num_of_step_A
+            Gy=Gy-1;
+            img(Gy,Gx)=labels(count);
+            count = count + 1;
         end
-        b = b+1; counter = counter+1;
+        direct = true;
+    end
+    if k ~= num_of_step_B + 1
+        Gx=Gx+1;
+        img(Gy,Gx)=labels(count);
+        count = count + 1;
     end
 end
-clear a b counter Gx Gy i
+clear count direct Gx Gy i k l LinWid MarkSize
 figure
 % colormap("gray")
 imagesc(img);
 % caxis([2700 3300])
 % figure,surf(1:size(img,1),1:size(img,2),img);
+set(gcf,'Position',[50 50 50+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
 set(gcf,'renderer','painters');
 saveas(gcf,[path 'Kmeans_Map.svg']);
 saveas(gcf,[path 'Kmeans_Map.fig']);
