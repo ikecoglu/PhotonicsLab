@@ -1,4 +1,4 @@
-clear all;close all; clc;
+clear;close all; clc;
 %% User input
 
 num_of_step_A = 30;
