@@ -2,10 +2,10 @@ clear; close all; clc;
 %% Parameters
 % 1 step = 256 ustep | 1 step = 2.5 um
 
-StepSize = 256; %in terms of microsteps
+StepSize = 128; %in terms of microsteps
 num_of_step_A=20; % num of steps in side A
 num_of_step_B=40; % num of steps in side B
-IntTime = 1e6; % in terms of microsecond
+IntTime = 1e5; % in terms of microsecond
 
 % don't touch this part
 step = (StepSize - mod(StepSize, 256) ) / 256;
