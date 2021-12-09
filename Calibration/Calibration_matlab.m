@@ -10,7 +10,7 @@ for i=1:dataSize
     spec(i,:,:) = dlmread(fullfile(path, [name num2str(i)]), ",");
 end
 %% Importing data - Not Ordered
-% 
+%
 % [fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
 % FileAdress = fullfile(path, fileName);
 % dataSize = length(FileAdress);

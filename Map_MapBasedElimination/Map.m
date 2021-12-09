@@ -1,8 +1,8 @@
 clear all;close all; clc;
 %% User input
 
-Length = 60; %legth of a side of scanned square. Unit is how many our step so actually legth/stepsize.
-Point2map = 1002;%the raman shift that is going to be mapped in 3d plot.
+Length = 40; %legth of a side of scanned square. Unit is how many our step so actually legth/stepsize.
+Point2map =1602;%the raman shift that is going to be mapped in 3d plot.
 n = 2;%averaging window size.
 %% Reading data
 
@@ -46,9 +46,9 @@ imagesc(img);
 % caxis([2700 3300])
 % figure,surf(1:size(img,1),1:size(img,2),img);
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Map.svg']);
-saveas(gcf,[path 'Map.fig']);
-close;
+% saveas(gcf,[path 'Map.svg']);
+% saveas(gcf,[path 'Map.fig']);
+% close;
 %% Notes from the writer of the code
 
 clc;disp('Always check the scanning direction!')

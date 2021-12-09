@@ -1,5 +1,6 @@
 clear; close all; clc;
 %% Parameters
+
 num_of_step_A = 30;
 num_of_step_B = 600;
 NumberofGroups = 4;
