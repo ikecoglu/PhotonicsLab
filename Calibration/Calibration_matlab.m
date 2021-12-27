@@ -1,24 +1,30 @@
 clear; close all; clc;
-%% Importing data - Ordered
+%% Settings
 
-[fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
-dataSize = length(fileName);
-name = fileName{1}(1:length(fileName{1})-1);
-for i=1:dataSize
-    clc;
-    disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", [name num2str(i)]));
-    spec(i,:,:) = dlmread(fullfile(path, [name num2str(i)]), ",");
+csv_save = false;
+order_important = true;
+%% Importing data
+
+path = uigetdir('Select data folder.');
+List = dir(path);
+dataSize = length(List)-2;
+if order_important
+    %% Ordered - Requires numerically ordered data names
+    Name = List(3).name;
+    Name = Name(1:end-1);
+    for i=1:dataSize
+        clc;
+        disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", [Name num2str(i)]));
+        spec(i,:,:) = dlmread(fullfile(path, [Name num2str(i)]), ",");
+    end
+else
+    %% Not Ordered
+    for i=1:dataSize
+        clc;
+        disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i+2).name));
+        spec(i,:,:) = dlmread(fullfile(path, List(i+2).name), ",");
+    end
 end
-%% Importing data - Not Ordered
-%
-% [fileName, path] = uigetfile('*.*','Select raw spectrum data.','MultiSelect', 'on');
-% FileAdress = fullfile(path, fileName);
-% dataSize = length(FileAdress);
-% for i=1:dataSize
-%     clc;
-%     disp(strcat("Importing data: ",int2str((i/dataSize)*100),"% - ", fileName{i}));
-%     spec(i,:,:) = dlmread(FileAdress{1,i,:},",");
-% end
 %% Raman Shift Conversion and Calibration
 
 RSspec = RamanShiftConverter(dataSize, spec);
@@ -38,21 +44,24 @@ ylabel('Raman Intensity (a.u.)','FontSize',13)
 box on;
 set(gca,'FontSize',13,'LineWidth',2);
 set(gcf,'renderer','painters');
-%% Save data
-
-Tbl = table;
-Tbl.X = Calx';
-for i=1:dataSize
-    name = ['y' num2str(i)];
-    Tbl.(name) = CalInt(i,:)';
-end
+%% Save data as mat
 
 Splited = split(path, filesep);
-name = char(Splited(end-1))
-pathup = path(1:end-length(name)-1)
+name = char(Splited(end));
+pathup = path(1:end-length(name));
 
 save([pathup name '.mat'],'Calx','CalInt')
-writetable(Tbl, [pathup name '.csv'])
+fprintf('Data %s has been saved in folder %s\n', name, pathup)
+%% Save data as csv
+if csv_save
+    Tbl = table;
+    Tbl.X = Calx';
+    for i=1:dataSize
+        cname = ['y' num2str(i)];
+        Tbl.(cname) = CalInt(i,:)';
+    end
+    writetable(Tbl, [pathup name '.csv'])
+end
 %% Alarm
 
 for i=1:3
