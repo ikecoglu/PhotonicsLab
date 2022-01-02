@@ -3,6 +3,7 @@ clear; close all; clc;
 
 csv_save = false;
 order_important = true;
+cutting_lims = [0 2500]; %for not cutting leave empty (unit: cm^-1)
 %% Importing data
 
 path = uigetdir('Select data folder.');
@@ -31,11 +32,13 @@ RSspec = RamanShiftConverter(dataSize, spec);
 [Calx, CalInt] = AxisCorr(dataSize, RSspec); Calx = Calx(1,:);
 %% Cutting
 
-start = find(Calx == 0);
-stop = find(Calx == 2500);
+if ~isempty(cutting_lims)
+    start = find(Calx == cutting_lims(1));
+    stop = find(Calx == cutting_lims(2));
 
-CalInt = CalInt(:,start:stop);
-Calx = Calx(start:stop);
+    CalInt = CalInt(:,start:stop);
+    Calx = Calx(start:stop);
+end
 %% Plotting
 
 plot(Calx, CalInt);
@@ -53,6 +56,7 @@ pathup = path(1:end-length(name));
 save([pathup name '.mat'],'Calx','CalInt')
 fprintf('Data %s has been saved in folder %s\n', name, pathup)
 %% Save data as csv
+
 if csv_save
     Tbl = table;
     Tbl.X = Calx';
