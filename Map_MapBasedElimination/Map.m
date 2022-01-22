@@ -2,39 +2,46 @@ clear all;close all; clc;
 %% User input
 
 Length = 40; %legth of a side of scanned square. Unit is how many our step so actually legth/stepsize.
-Point2map =1602;%the raman shift that is going to be mapped in 3d plot.
+Point2map = 1443;%the raman shift that is going to be mapped in 3d plot.
 n = 2;%averaging window size.
 %% Reading data
 
 [fileName, path] = uigetfile('*.mat*','Select data to map.');
 FileName = fullfile(path,fileName);
 load(FileName)
-dataSize = size(CalInt, 1);
+if exist('CalInt')
+    data = CalInt;
+elseif exist('BCInt')
+    data = BCInt;
+elseif exist('NormInt')
+    data = NormInt;
+end
+dataSize = size(data, 1);
 %% Mapping
 
 peak=find(Calx == Point2map);
 peak=peak-n:peak+n;
 i=0;b=0;counter=0;Gx=Length;Gy=Length;
-img(Gy+1,Gx+1)=mean(CalInt(1,peak));
+img(Gy+1,Gx+1)=mean(data(1,peak));
 while i<dataSize
     a=mod(b,4);
     if(a==0)
         for i=counter*(Length+1)+2:(counter+1)*(Length+1)
             Gy=Gy-1;
-            img(Gy+1,Gx+1)=mean(CalInt(i,peak));
+            img(Gy+1,Gx+1)=mean(data(i,peak));
         end
         b=b+1;counter=counter+1;
     end
     if(a==1||a==3)
         i=counter*(Length+1)+1;
         Gx=Gx-1;
-        img(Gy+1,Gx+1)=mean(CalInt(i,peak));
+        img(Gy+1,Gx+1)=mean(data(i,peak));
         b=b+1;
     end
     if(a==2)
         for i=counter*(Length+1)+2:(counter+1)*(Length+1)
             Gy=Gy+1;
-            img(Gy+1,Gx+1)=mean(CalInt(i,peak));
+            img(Gy+1,Gx+1)=mean(data(i,peak));
         end
         b=b+1;counter=counter+1;
     end
