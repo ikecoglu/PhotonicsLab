@@ -4,7 +4,8 @@ clear all; close all; clc;
 mode = 'linear'; % string; Line fitting options: linear, spline
 %BasePoints=[670, 685, 768, 909, 948, 970, 1088, 1205, 1401, 1576, 1628, 1720, 1767, 1800]; %pure cell line base
 %BasePoints = [670,690,764,950,1094,1207,1401,1480,1576,1628,1565,1725,1767,1800];%uur
-BasePoints = [670 780 901 1024 1148 1457 1619 1657 1672 1723 1739 1798 1800]; %Mixed cell lines
+%BasePoints = [670 780 901 1024 1148 1457 1619 1657 1672 1723 1739 1798 1800]; %Mixed cell lines
+BasePoints = [407 476 581 663 896 961 1070 1141 1157 1163 1193 1280 1347 1350 1403 1535 1643 1695 1718 1732 1795 1800];
 %% Importing data
 
 [FileName, Path] = uigetfile('*.mat*', 'Select calibrated data');
