@@ -5,7 +5,8 @@ clear; close all; clc;
 StepSize = 128; %in terms of microsteps
 num_of_step_A=20; % num of steps in side A
 num_of_step_B=40; % num of steps in side B
-IntTime = 1e5; % in terms of microsecond
+IntTime = 1e5; % integration time in terms of microsecond
+num_of_average = 0;%number of spectrums to take average of in each location, no average = 0
 
 % don't touch this part
 step = (StepSize - mod(StepSize, 256) ) / 256;
@@ -18,7 +19,9 @@ wrapper = com.oceanoptics.omnidriver.api.wrapper.Wrapper();
 wrapper.openAllSpectrometers();
 wrapper.getName(0)
 wl = wrapper.getWavelengths(0);
-% wrapper.setScansToAverage(0,5);
+if num_of_average > 0
+    wrapper.setScansToAverage(0,num_of_average);
+end
 wrapper.setIntegrationTime(0,IntTime);
 wrapper.getCorrectForElectricalDark(0);
 wrapper.getCorrectForDetectorNonlinearity(0);
