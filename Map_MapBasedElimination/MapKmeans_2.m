@@ -3,7 +3,7 @@ clear; close all; clc;
 
 num_of_step_A = 30;
 num_of_step_B = 600;
-NumberofGroups = 4;
+NumberofGroups = 6;
 Normalize_log = false;
 Cutting_log = true;
 Start = 400;
@@ -48,9 +48,9 @@ xlabel(sprintf('PC 1 (%.2f%%)', explained(1)),'FontSize',18); ylabel(sprintf('PC
 box on;
 set(gca, 'FontSize', 18, 'LineWidth',2)
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Kmeans_PCA.svg']);
-saveas(gcf,[path 'Kmeans_PCA.fig']);
-print(gcf,[path 'Kmeans_PCA.png'],'-dpng','-r600');
+saveas(gcf,[path 'KmeansPCA_k' num2str(NumberofGroups) '.svg']);
+saveas(gcf,[path 'KmeansPCA_k' num2str(NumberofGroups) '.fig']);
+print(gcf, [path 'KmeansPCA_k' num2str(NumberofGroups) '.png'],'-dpng','-r600');
 close;
 %% Mean spectrums of groups
 
@@ -65,9 +65,9 @@ box on;
 xlim([Calx(1) Calx(end)])
 set(gca, 'FontSize', 18, 'LineWidth',2)
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Kmeans_MeanSpectra.svg']);
-saveas(gcf,[path 'Kmeans_MeanSpectra.fig']);
-print(gcf,[path 'Kmeans_MeanSpectra.png'],'-dpng','-r600');
+saveas(gcf,[path 'KmeansSpectra_k' num2str(NumberofGroups) '.svg']);
+saveas(gcf,[path 'KmeansSpectra_k' num2str(NumberofGroups) '.fig']);
+print(gcf, [path 'KmeansSpectra_k' num2str(NumberofGroups) '.png'],'-dpng','-r600');
 close;
 %% Loading plots
 
@@ -82,9 +82,9 @@ box on;
 xlim([Calx(1) Calx(end)])
 set(gca, 'FontSize', 18, 'LineWidth',2)
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Kmeans_Loadings.svg']);
-saveas(gcf,[path 'Kmeans_Loadings.fig']);
-print(gcf,[path 'Kmeans_Loadings.png'],'-dpng','-r600');
+saveas(gcf,[path 'KmeansLoadings_k' num2str(NumberofGroups) '.svg']);
+saveas(gcf,[path 'KmeansLoadings_k' num2str(NumberofGroups) '.fig']);
+print(gcf, [path 'KmeansLoadings_k' num2str(NumberofGroups) '.png'],'-dpng','-r600');
 close;
 %% Mapping
 
@@ -117,14 +117,19 @@ for k = 1:num_of_step_B + 1
 end
 clear count direct Gx Gy i k l LinWid MarkSize
 figure
-% colormap("gray")
+colormap([0 0.4470 0.7410; ...
+ 0.8500 0.3250 0.0980; ...
+ 0.9290 0.6940 0.1250; ...
+ 0.4940 0.1840 0.5560; ...
+ 0.4660 0.6740 0.1880; ...
+ 0.3010 0.7450 0.9330])
 imagesc(img);
 % caxis([2700 3300])
 % figure,surf(1:size(img,1),1:size(img,2),img);
 set(gcf,'Position',[50 50 50+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Kmeans_Map.svg']);
-saveas(gcf,[path 'Kmeans_Map.fig']);
+saveas(gcf,[path 'KmeansMap_k' num2str(NumberofGroups) '.svg']);
+saveas(gcf,[path 'KmeansMap_k' num2str(NumberofGroups) '.fig']);
 close;
 %% Notes from the writer of the code
 

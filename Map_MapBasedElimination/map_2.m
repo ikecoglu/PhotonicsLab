@@ -3,7 +3,7 @@ clear;close all; clc;
 
 num_of_step_A = 30;
 num_of_step_B = 600;
-Point2map = 1002;%the raman shift that is going to be mapped in 3d plot.
+Point2map = 1460;%the raman shift that is going to be mapped in 3d plot.
 n = 2;%averaging window size.
 %% Reading data
 
@@ -50,8 +50,8 @@ imagesc(img);
 % figure,surf(img);
 set(gcf,'Position',[50 50 50+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Map.svg']);
-saveas(gcf,[path 'Map.fig']);
+saveas(gcf,[path 'Map_' num2str(Point2map) '.svg']);
+saveas(gcf,[path 'Map_' num2str(Point2map) '.fig']);
 close;
 %% Enhanced Contrast Image
 
