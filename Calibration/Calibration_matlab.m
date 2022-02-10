@@ -3,6 +3,7 @@ clear; close all; clc;
 
 csv_save = false;
 order_important = true;
+alarm = true;
 cutting_lims = [0 2500]; %for not cutting leave empty (unit: cm^-1)
 %% Importing data
 
@@ -68,7 +69,9 @@ if csv_save
 end
 %% Alarm
 
-for i=1:3
-    sound(sin(1:10000));
-    pause(2)
+if alarm
+    for i=1:3
+        sound(sin(1:10000));
+        pause(2)
+    end
 end
