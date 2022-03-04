@@ -5,11 +5,13 @@ csv_save = false;
 order_important = true;
 alarm = true;
 cutting_lims = [0 2500]; %for not cutting leave empty (unit: cm^-1)
+plotting = false;
 %% Importing data
 
 path = uigetdir('Select data folder.');
 List = dir(path);
 dataSize = length(List)-2;
+spec = zeros(dataSize, 1044, 2);
 if order_important
     %% Ordered - Requires numerically ordered data names
     Name = List(3).name;
@@ -41,13 +43,14 @@ if ~isempty(cutting_lims)
     Calx = Calx(start:stop);
 end
 %% Plotting
-
-plot(Calx, CalInt);
-xlabel('Raman Shift (cm^{-1})','FontSize',13)
-ylabel('Raman Intensity (a.u.)','FontSize',13)
-box on;
-set(gca,'FontSize',13,'LineWidth',2);
-set(gcf,'renderer','painters');
+if plotting
+    plot(Calx, CalInt);
+    xlabel('Raman Shift (cm^{-1})','FontSize',13)
+    ylabel('Raman Intensity (a.u.)','FontSize',13)
+    box on;
+    set(gca,'FontSize',13,'LineWidth',2);
+    set(gcf,'renderer','painters');
+end
 %% Save data as mat
 
 Splited = split(path, filesep);
