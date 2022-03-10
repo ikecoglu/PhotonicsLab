@@ -1,45 +1,65 @@
 clear; close all; clc;
+if isempty(gcp('nocreate')); parpool; end;
 %% Settings
 
-n_dir = 14; %number of folders to be selected before hand
+n_dir = 4; %number of folders to be selected before hand
 csv_save = false;
 order_important = true;
 alarm = true;
 cutting_lims = [0 2500]; %for not cutting leave empty (unit: cm^-1)
+plotting = false;
 %% Selecting folders
+disp('Selected files:')
 for k=1:n_dir
     if k==1
         paths{k} = uigetdir(sprintf('Select data folder number %d', k));
     else
-        paths{k} = uigetdir(sprintf(paths{k-1}, 'Select data folder number %d', k));
+        paths{k} = uigetdir(sprintf(pathup, 'Select data folder number %d', k));
     end
+    path = paths{k};
+    Splited = split(path, filesep);
+    name = char(Splited(end));
+    pathup = path(1:end-length(name));
+    fprintf('%d - %s\n', k, name);
 end
 for k = 1:n_dir
     %% Importing data
+
     path = paths{k};
     List = dir(path);
     dataSize = length(List)-2;
+    spec = zeros(dataSize, 1044, 2);
     if order_important
         %% Ordered - Requires numerically ordered data names
+
         Name = List(3).name;
         Name = Name(1:end-1);
-        for i=1:dataSize
-            clc;
-            disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", [Name num2str(i)]));
+        parfor i=1:dataSize
             spec(i,:,:) = dlmread(fullfile(path, [Name num2str(i)]), ",");
         end
+        disp("Reading Data: Done!")
     else
         %% Not Ordered
+
         for i=1:dataSize
             clc;
             disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i+2).name));
             spec(i,:,:) = dlmread(fullfile(path, List(i+2).name), ",");
         end
     end
+
     %% Raman Shift Conversion and Calibration
 
-    RSspec = RamanShiftConverter(dataSize, spec);
-    [Calx, CalInt] = AxisCorr(dataSize, RSspec); Calx = Calx(1,:);
+    Calx = zeros(dataSize, 2851);
+    CalInt = zeros(dataSize, 2851);
+
+    parfor i=1:dataSize
+
+        RSspec = RamanShiftConverter(dataSize, spec(i,:,:));
+        [Calx(i,:), CalInt(i,:)] = AxisCorr(dataSize, RSspec);
+    end
+    Calx = Calx(1,:);
+    disp("Raman Shift Conversion and Calibration: Done!")
     %% Cutting
 
     if ~isempty(cutting_lims)
@@ -51,12 +71,14 @@ for k = 1:n_dir
     end
     %% Plotting
 
-    plot(Calx, CalInt);
-    xlabel('Raman Shift (cm^{-1})','FontSize',13)
-    ylabel('Raman Intensity (a.u.)','FontSize',13)
-    box on;
-    set(gca,'FontSize',13,'LineWidth',2);
-    set(gcf,'renderer','painters');
+    if plotting
+        plot(Calx, CalInt);
+        xlabel('Raman Shift (cm^{-1})','FontSize',13)
+        ylabel('Raman Intensity (a.u.)','FontSize',13)
+        box on;
+        set(gca,'FontSize',13,'LineWidth',2);
+        set(gcf,'renderer','painters');
+    end
     %% Save data as mat
 
     Splited = split(path, filesep);
