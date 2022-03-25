@@ -1,11 +1,11 @@
 clear; close all; clc;
 %% Parameters
 
-num_of_step_A = 30;
-num_of_step_B = 600;
-NumberofGroups = 6;
+num_of_step_A = 100;
+num_of_step_B = 80;
+NumberofGroups = 5;
 Normalize_log = false;
-Cutting_log = true;
+Cutting_log = false;
 Start = 400;
 Stop = 1800;
 Seed = 1; % For reproducibility 
@@ -14,24 +14,31 @@ Seed = 1; % For reproducibility
 [fileName, path] = uigetfile('*.mat*', 'Select data to map.');
 FileAdress = fullfile(path, fileName);
 load(FileAdress)
-DataSize = size(CalInt, 1);
+if exist('CalInt')
+    data = CalInt;
+elseif exist('BCInt')
+    data = BCInt;
+elseif exist('NormInt')
+    data = NormInt;
+end
+DataSize = size(data, 1);
 
 if Normalize_log
     for i = 1:DataSize
-        CalInt(i,:)=CalInt(i,:)./norm(CalInt(i,:));
+        data(i,:)=data(i,:)./norm(data(i,:));
     end
 end
 
 if Cutting_log
     Start_indx = find(Calx==Start,1);
     Stop_indx = find(Calx==Stop,1);
-    CalInt = CalInt(:, Start_indx:Stop_indx);
+    data = data(:, Start_indx:Stop_indx);
     Calx = Calx(Start_indx:Stop_indx);
     clear Start_indx Stop_indx
 end
 %% PCA
 
-[coeff, score, ~, ~, explained] = pca(CalInt);
+[coeff, score, ~, ~, explained] = pca(data);
 %% Kmeans
 
 rng(Seed);
@@ -57,7 +64,7 @@ close;
 LinWid = 2;
 figure, hold on
 for i = 1:NumberofGroups
-    plot(Calx, mean(CalInt(find(labels==i), :), 1), 'LineWidth', LinWid, 'DisplayName', sprintf('Group %d', i))
+    plot(Calx, mean(data(find(labels==i), :), 1), 'LineWidth', LinWid, 'DisplayName', sprintf('Group %d', i))
 end
 legend('Show')
 xlabel('Raman Shift (cm^{-1})','FontSize',18); ylabel('Raman Intensity (a.u.)','FontSize',18)
@@ -126,7 +133,8 @@ colormap([0 0.4470 0.7410; ...
 imagesc(img);
 % caxis([2700 3300])
 % figure,surf(1:size(img,1),1:size(img,2),img);
-set(gcf,'Position',[50 50 50+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
+% set(gcf,'Position',[50 50 50+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
+pbaspect([(num_of_step_B + 1) (num_of_step_A + 1) 1])
 set(gcf,'renderer','painters');
 saveas(gcf,[path 'KmeansMap_k' num2str(NumberofGroups) '.svg']);
 saveas(gcf,[path 'KmeansMap_k' num2str(NumberofGroups) '.fig']);
