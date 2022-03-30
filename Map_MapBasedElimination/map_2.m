@@ -61,13 +61,13 @@ img_v(isoutlier(img_v)) = median(img_v);
 % img_v(isoutlier(img_v)) = NaN;
 img_e = reshape(img_v, nA, nB);
 imagesc(img_e)
-pbaspect([nA nB 1])
+pbaspect([nB nA 1])
 % caxis([2700 3300])
 % figure,surf(img);
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Map_' num2str(Point2map) '.svg']);
-saveas(gcf,[path 'Map_' num2str(Point2map) '.fig']);
-close;
+% saveas(gcf,[path 'Map_' num2str(Point2map) '.svg']);
+% saveas(gcf,[path 'Map_' num2str(Point2map) '.fig']);
+% close;
 %% Enhanced Contrast Image
 
 % img_rs = uint8(rescale(img_e, 0, 255));
