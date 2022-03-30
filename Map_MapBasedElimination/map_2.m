@@ -1,8 +1,8 @@
 clear;close all; clc;
 %% User input
 
-num_of_step_A = 100;
-num_of_step_B = 80;
+num_of_step_A = 80;
+num_of_step_B = 240;
 Point2map = 1436;%the raman shift that is going to be mapped in 3d plot.
 n = 2;%averaging window size.
 %% Reading data
@@ -52,18 +52,25 @@ end
 clear count direct Gx Gy k l peak
 figure
 % colormap("gray")
-imagesc(img);
+
+nA = num_of_step_A + 1;
+nB = num_of_step_B + 1;
+
+img_v = reshape(img, nA*nB, 1);
+img_v(isoutlier(img_v)) = median(img_v);
+% img_v(isoutlier(img_v)) = NaN;
+img_e = reshape(img_v, nA, nB);
+imagesc(img_e)
+pbaspect([nA nB 1])
 % caxis([2700 3300])
 % figure,surf(img);
-% set(gcf,'Position',[50 50 10+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
-pbaspect([(num_of_step_B + 1) (num_of_step_A + 1) 1])
 set(gcf,'renderer','painters');
 saveas(gcf,[path 'Map_' num2str(Point2map) '.svg']);
 saveas(gcf,[path 'Map_' num2str(Point2map) '.fig']);
 close;
 %% Enhanced Contrast Image
 
-% img_rs = uint8(rescale(img, 0, 255));
+% img_rs = uint8(rescale(img_e, 0, 255));
 % img_enp = adapthisteq(img_rs,'clipLimit',0.02,'Distribution','rayleigh');
 % img_en = zeros(num_of_step_A+1, num_of_step_B+1);
 % i = 1;
