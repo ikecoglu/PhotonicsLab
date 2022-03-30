@@ -1,8 +1,8 @@
 clear; close all; clc;
 %% Parameters
 
-num_of_step_A = 100;
-num_of_step_B = 80;
+num_of_step_A = 80;
+num_of_step_B = 240;
 NumberofGroups = 5;
 Normalize_log = false;
 Cutting_log = false;
