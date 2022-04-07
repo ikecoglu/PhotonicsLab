@@ -3,7 +3,7 @@ clear all; close all; clc;
 
 mode = 'linear'; % string; Line fitting options: linear, spline
 SaveCSV = false;
-PlotFigures = true;
+PlotFigures = false;
 Alarm = true;
 BasePoints = [476 581 663 902 910 962 1023 1026 1030 1033 1075 1147 1150 1163 1177 1201 1270 1273 1419 1471 1477 1529 1547 1592 1683 1712 1726 1738 1744 1772 1798 1862 1894 1925 1945 1988];
 %% Importing data

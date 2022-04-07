@@ -3,7 +3,7 @@ clear; close all; clc;
 
 num_of_step_A = 80;
 num_of_step_B = 240;
-NumberofGroups = 5;
+NumberofGroups = 4;
 Normalize_log = false;
 Cutting_log = false;
 Start = 400;
@@ -124,12 +124,14 @@ for k = 1:num_of_step_B + 1
 end
 clear count direct Gx Gy i k l LinWid MarkSize
 figure
-colormap([0 0.4470 0.7410; ...
+Color_list = [0 0.4470 0.7410; ...
  0.8500 0.3250 0.0980; ...
  0.9290 0.6940 0.1250; ...
  0.4940 0.1840 0.5560; ...
  0.4660 0.6740 0.1880; ...
- 0.3010 0.7450 0.9330])
+ 0.3010 0.7450 0.9330];
+
+colormap(Color_list(1:NumberofGroups,:))
 imagesc(img);
 % caxis([2700 3300])
 % figure,surf(1:size(img,1),1:size(img,2),img);

@@ -1,9 +1,9 @@
 clear;close all; clc;
 %% User input
 
-num_of_step_A = 30;
-num_of_step_B = 600;
-Point2map = 1460;%the raman shift that is going to be mapped in 3d plot.
+num_of_step_A = 100;
+num_of_step_B = 80;
+Point2map = 1128;%the raman shift that is going to be mapped in 3d plot.
 n = 2;%averaging window size.
 %% Reading data
 
@@ -28,12 +28,14 @@ for i=1:dataSize
     BCInt(i,:)=CalInt(i,:)-y(i,:);
 
 end
-peak=peak-n:peak+n;
+
 %% Mapping
 
+peak=find(Calx==Point2map);
+peak=peak-n:peak+n;
 
 Gx=1;Gy=1;
-img(Gy,Gx)=mean(CalInt(1,peak));
+img(Gy,Gx)=mean(BCInt(1,peak));
 count = 2;
 
 direct = true;
@@ -41,21 +43,21 @@ for k = 1:num_of_step_B + 1
     if direct
         for l = 1:num_of_step_A
             Gy=Gy+1;
-            img(Gy,Gx)=mean(CalInt(count,peak));
+            img(Gy,Gx)=mean(BCInt(count,peak));
             count = count + 1;
         end
         direct = false;
     else
         for l = 1:num_of_step_A
             Gy=Gy-1;
-            img(Gy,Gx)=mean(CalInt(count,peak));
+            img(Gy,Gx)=mean(BCInt(count,peak));
             count = count + 1;
         end
         direct = true;
     end
     if k ~= num_of_step_B + 1
         Gx=Gx+1;
-        img(Gy,Gx)=mean(CalInt(count,peak));
+        img(Gy,Gx)=mean(BCInt(count,peak));
         count = count + 1;
     end
 end
@@ -65,7 +67,8 @@ figure
 imagesc(img);
 % caxis([2700 3300])
 % figure,surf(img);
-set(gcf,'Position',[50 50 50+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
+% set(gcf,'Position',[50 50 50+10*(num_of_step_B+1) 50+10*(num_of_step_A+1)])
+pbaspect([(num_of_step_A + 1) (num_of_step_B + 1) 1])
 set(gcf,'renderer','painters');
 % saveas(gcf,[path 'Map_' num2str(Point2map) '.svg']);
 % saveas(gcf,[path 'Map_' num2str(Point2map) '.fig']);

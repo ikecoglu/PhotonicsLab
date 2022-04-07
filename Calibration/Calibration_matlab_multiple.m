@@ -2,7 +2,7 @@ clear; close all; clc;
 if isempty(gcp('nocreate')); parpool; end;
 %% Settings
 
-n_dir = 4; %number of folders to be selected before hand
+n_dir = 8; %number of folders to be selected before hand
 csv_save = false;
 order_important = true;
 alarm = true;
