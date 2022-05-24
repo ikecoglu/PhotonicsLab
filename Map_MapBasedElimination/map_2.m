@@ -1,9 +1,9 @@
 clear;close all; clc;
 %% User input
 
-num_of_step_A = 80;
+num_of_step_A = 100;
 num_of_step_B = 240;
-Point2map = 1436;%the raman shift that is going to be mapped in 3d plot.
+Point2map = 1692;%the raman shift that is going to be mapped in 3d plot.
 n = 2;%averaging window size.
 %% Reading data
 
@@ -65,9 +65,10 @@ pbaspect([nB nA 1])
 % caxis([2700 3300])
 % figure,surf(img);
 set(gcf,'renderer','painters');
-saveas(gcf,[path 'Map_' num2str(Point2map) '.svg']);
-saveas(gcf,[path 'Map_' num2str(Point2map) '.fig']);
-close;
+print(gcf,[path 'Map_' num2str(Point2map) '.png'],'-dpng','-r600');
+% saveas(gcf,[path 'Map_' num2str(Point2map) '.svg']);
+% saveas(gcf,[path 'Map_' num2str(Point2map) '.fig']);
+% close;
 %% Enhanced Contrast Image
 
 % img_rs = uint8(rescale(img_e, 0, 255));
