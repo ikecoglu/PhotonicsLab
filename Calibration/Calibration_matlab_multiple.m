@@ -2,7 +2,7 @@ clear; close all; clc;
 if isempty(gcp('nocreate')); parpool; end;
 %% Settings
 
-n_dir = 8; %number of folders to be selected before hand
+n_dir = 11; %number of folders to be selected before hand
 csv_save = false;
 order_important = true;
 alarm = true;
@@ -27,12 +27,17 @@ for k = 1:n_dir
 
     path = paths{k};
     List = dir(path);
-    dataSize = length(List)-2;
+    if strcmp(List(3).name, '.DS_Store')
+        offset = 3;
+    else
+        offset = 2; 
+    end
+    dataSize = length(List)-offset;
     spec = zeros(dataSize, 1044, 2);
     if order_important
         %% Ordered - Requires numerically ordered data names
 
-        Name = List(3).name;
+        Name = List(offset+1).name;
         Name = Name(1:end-1);
         parfor i=1:dataSize
             spec(i,:,:) = dlmread(fullfile(path, [Name num2str(i)]), ",");
@@ -43,8 +48,8 @@ for k = 1:n_dir
 
         for i=1:dataSize
             clc;
-            disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i+2).name));
-            spec(i,:,:) = dlmread(fullfile(path, List(i+2).name), ",");
+            disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i+offset).name));
+            spec(i,:,:) = dlmread(fullfile(path, List(i+offset).name), ",");
         end
     end
 
