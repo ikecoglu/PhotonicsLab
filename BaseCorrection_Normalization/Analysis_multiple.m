@@ -2,19 +2,19 @@ clear all; close all; clc;
 %% Parameters - User input
 
 mode = 'linear'; % string; Line fitting options: linear, spline
-n_file = 22; %number of mat files to be selected
+n_file = 3; %number of mat files to be selected
 SaveCSV = false;
 PlotFigures = false;
 Alarm = true;
-BasePoints = [401 778 1154 1545 1729 1800];
+BasePoints = [476 663 899 1016 1029 1153 1160 1273 1419 1471 1477 1532 1544 1597 1729 1796];
 %% Selecting folders
 disp('Selected files:')
 for k=1:n_file
     if k==1
-        [name, path] = uigetfile(sprintf('Select data folder number %d', k));
+        [name, path] = uigetfile('.mat', sprintf('Select data folder number %d', k));
         paths{k} = fullfile(path,name);
     else
-        [name, path] = uigetfile(sprintf(pathup, 'Select data folder number %d', k));
+        [name, path] = uigetfile([pathup '*.mat'], sprintf('Select data folder number %d', k));
         paths{k} = fullfile(path,name);
     end
     path = paths{k};
