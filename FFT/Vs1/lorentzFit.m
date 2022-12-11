@@ -1,9 +1,0 @@
-function ParamForLorentz = lorentzFit(x,y)
-p3 = ((max(x)-min(x))/5)^2;
-p2 = min(x);
-p1 = max(y)*p3;
-p = [p1,p2,p3];
-lorentz = @(param, x) param(1) ./ ((x-param(2)).^2 + param(3));
-fit_error = @(param) sum((y - lorentz(param, x)).^2);
-options = optimset('MaxFunEvals',1e30);
-ParamForLorentz = fminsearch(fit_error, p, options);
