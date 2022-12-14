@@ -1,5 +1,5 @@
 clear all; close all; clc;
-if isempty(gcp('nocreate')); parpool; end;
+if isempty(gcp('nocreate')); parpool; end
 %% Parameters - User input
 
 n_file = 8; %number of mat files to be selected
