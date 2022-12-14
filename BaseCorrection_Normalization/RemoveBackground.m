@@ -1,5 +1,10 @@
 function [RS] = RemoveBackground(Measured_Spectrum, Background, Poly_order)
 
+% This function is based on the method described in: Beier, Brooke D., 
+% and Andrew J. Berger. “Method for Automated Background Subtraction from 
+% Raman Spectra Containing Known Contaminants.” Analyst 134, no. 6 (2009): 
+% 1198–1202. https://doi.org/10.1039/B821856K.
+
 warning('off', 'MATLAB:polyfit:RepeatedPointsOrRescale')
 
 eps = 0.1;
