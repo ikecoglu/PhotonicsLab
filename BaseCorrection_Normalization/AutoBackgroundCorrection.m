@@ -1,4 +1,4 @@
-clear all; close all; clc;
+clear; close all; clc;
 if isempty(gcp('nocreate')); parpool; end
 %% Parameters - User input
 
