@@ -1,22 +1,27 @@
 clear; close all; clc;
-%% Parameters
+%% Scanning Parameters
 % 1 step = 256 ustep | 1 step = 2.5 um
 
-LX = 1500; % Max value of X length in steps, for the initial scan
-LY = 2500; % Max value of Y length in steps, for the initial scan
-nIteration = 4; % Number of times the regions is being shrunk
-nSplit = 10;
-
-Treshold_region = [810, 830]; %in nm
-
-StepSize = 16; % Step size to use after determining the region. In steps.
-
-IntTime = 1e5; % integration time in terms of microsecond
-num_of_average = 2; %number of spectrums to take average of in each location, no average = 0
+StepSize = 8; % Step size to use after determining the region. In steps.
+IntTime = 3e5; % integration time in terms of microsecond
+num_of_average = 0; %number of spectrums to take average of in each location, no average = 0
+BoxcarWidth = 1; 
 
 % Not recommended to change
 speed = 1000;
 uspeed = 1000;
+
+%% Region Determination Parameters
+
+LX = 1500; % Max value of X length in steps, for the initial scan
+LY = 2000; % Max value of Y length in steps, for the initial scan
+nIteration = 3; % Number of times the regions is being shrunk
+nSplit = 10;
+
+Treshold_region = [810, 830]; %in nm
+
+IntTime_region = 1e5; % integration time in terms of microsecond
+num_of_average_region = 2; %number of spectrums to take average of in each location, no average = 0
 
 %% Spectrometer
 
@@ -24,13 +29,13 @@ wrapper = com.oceanoptics.omnidriver.api.wrapper.Wrapper();
 wrapper.openAllSpectrometers();
 wrapper.getName(0)
 wl = wrapper.getWavelengths(0);
-if num_of_average > 0
-    wrapper.setScansToAverage(0,num_of_average);
+if num_of_average_region > 0
+    wrapper.setScansToAverage(0,num_of_average_region);
 end
-wrapper.setIntegrationTime(0,IntTime);
+wrapper.setIntegrationTime(0,IntTime_region);
 wrapper.getCorrectForElectricalDark(0);
 wrapper.getCorrectForDetectorNonlinearity(0);
-wrapper.setBoxcarWidth(0,1);
+wrapper.setBoxcarWidth(0,BoxcarWidth);
 
 %% Stage
 
@@ -118,7 +123,7 @@ state_Y = ximc_get_status(device_id_Y);
 state_X = ximc_get_status(device_id_X);
 % disp('Status:'); disp(state_s2);
 
-%%
+%% Move from sample center to starting position
 
 % Determine starting position
 start_position_Y = state_Y.CurPosition-LY/3;
@@ -133,7 +138,7 @@ result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
 result = calllib('libximc','command_move', device_id_Y, start_position_Y, 0);
 result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
-%% Show region
+%% Show region - to see if there is any part of the sample outside
 
 result = calllib('libximc','command_move', device_id_X, start_position_X+LX, start_uposition_X);
 result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
@@ -147,26 +152,25 @@ result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
 result = calllib('libximc','command_move', device_id_Y, start_position_Y, start_uposition_Y);
 result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
-%% Scanning
+%% Region Determination
 
 X = round(linspace(start_position_X, start_position_X + LX, nSplit));
 Y = round(linspace(start_position_Y, start_position_Y + LY, nSplit));
 
-Region = [];
 for Iter = 1:nIteration
     
     spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+    Region = [];
     
     for y = 1:nSplit
         
-        disp(100*y/length(Y))
+        clc; disp(100*y/length(Y))
         for x = 1:nSplit
             
             result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
             result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
             
             spectrum = wrapper.getSpectrum(0)';
-            wl = wrapper.getWavelengths(0)';
             
             Region(y,x,:) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
         end
@@ -179,57 +183,62 @@ for Iter = 1:nIteration
         result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
         
     end
-    if Iter~=nIteration
-        figure
-        imagesc(Region)
-        caxis([min(min(Region)) 2500])
-        h =  imrect();
-        disp('To continue press enter:')
-        pause;
-        % Rectangle position is given as [xmin, ymin, width, height]
-        pos_rect = h.getPosition();
-        % Round off so the coordinates can be used as indices
-        pos_rect = [floor(pos_rect(1))+1, floor(pos_rect(2))+1, ceil(pos_rect(3))-1, ceil(pos_rect(4))-1];
-        close
-        
-        X_min = X(pos_rect(1));
-        X_max = X(min(pos_rect(1)+pos_rect(3),nSplit));
-        Y_min = Y(pos_rect(2));
-        Y_max = Y(min(pos_rect(2)+pos_rect(4),nSplit));
-        
-        Region_cropped = Region(pos_rect(2):min(pos_rect(2)+pos_rect(4),nSplit), pos_rect(1):min(pos_rect(1)+pos_rect(3),nSplit));
-        
-        figure
-        imagesc(Region_cropped)
-        caxis([min(min(Region)) 2500])
-        title('Cropped Region')
-        disp('To continue press enter:')
-        pause;
-        close
-        
-        X = round(linspace(X_min, X_max, nSplit));
-        Y = round(linspace(Y_min, Y_max, nSplit));
+    
+    figure
+    imagesc(Region)
+    caxis([min(min(Region)) 2500])
+    h =  imrect();
+    clc; disp('To continue press enter:')
+    pause;
+    % Rectangle position is given as [xmin, ymin, width, height]
+    pos_rect = h.getPosition();
+    % Round off so the coordinates can be used as indices
+    pos_rect = [floor(pos_rect(1))+1, floor(pos_rect(2))+1, ceil(pos_rect(3))-1, ceil(pos_rect(4))-1];
+    close
+    
+    X_min = X(pos_rect(1));
+    X_max = X(min(pos_rect(1)+pos_rect(3),nSplit));
+    Y_min = Y(pos_rect(2));
+    Y_max = Y(min(pos_rect(2)+pos_rect(4),nSplit));
+    
+    Region_cropped = Region(pos_rect(2):min(pos_rect(2)+pos_rect(4),nSplit), pos_rect(1):min(pos_rect(1)+pos_rect(3),nSplit));
+    
+    figure
+    imagesc(Region_cropped)
+    caxis([min(min(Region)) 2500])
+    title('Cropped Region')
+    clc; disp('To continue press enter:')
+    pause;
+    close
+    
+    if Iter == nIteration-1
+        nSplit = 2*nSplit;
     end
+    
+    X = round(linspace(X_min, X_max, nSplit));
+    Y = round(linspace(Y_min, Y_max, nSplit));
     
 end
 
-disp(sprintf("Starting position: X = %d, Y = %d", X_min, Y_min))
+clc; disp(sprintf("Starting position: X = %d, Y = %d", X_min, Y_min))
 disp(sprintf("Number of steps X = %d ; Number of steps Y = %d", ceil((X_max-X_min)/StepSize), ceil((Y_max-Y_min)/StepSize)))
-%% Scanning
+
+clear h i Iter pos_rect Region Region_cropped result spectrum x X y Y
+
+%% Fast Preliminary Scanning of The Determined Region
 
 X = [X_min: StepSize : X_min + ceil(X_max-X_min)];
 Y = [Y_min: StepSize : Y_min + ceil(Y_max-Y_min)];
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
 
 for y = 1:length(Y)
-    disp(100*y/length(Y))
+    clc; disp(round(100*y/length(Y)))
     for x = 1:length(X)
         
         result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
         result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
         
         spectrum = wrapper.getSpectrum(0)';
-        wl = wrapper.getWavelengths(0)';
         
         Map(y,x,:) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
     end
@@ -248,15 +257,54 @@ imagesc(Map)
 caxis([1600 2500])
 pbaspect([length(X) length(Y) 1])
 
+clear x X y Y spectrum
+
+%% Scanning
+
+[FileName,PathName] = uiputfile('C:\Users\PAM\Desktop\raman measurements');
+
+% Update Spectrometer Settings
+if num_of_average > 0
+    wrapper.setScansToAverage(0,num_of_average);
+end
+wrapper.setIntegrationTime(0,IntTime);
+
+X = [X_min: StepSize : X_min + ceil(X_max-X_min)];
+Y = [Y_min: StepSize : Y_min + ceil(Y_max-Y_min)];
+
+spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+
+for y = 1:length(Y)
+    clc; disp(round(100*y/length(Y)))
+    for x = 1:length(X)
+        
+        result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
+        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+        
+        spectrum = wrapper.getSpectrum(0)';
+
+        RawData(y,x,:) = spectrum;
+    end
+    if mod(y,2)==0
+        RawData(y,:,:) = flip(RawData(y,:,:));
+    end
+    X = flip(X);
+    
+    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
+    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+    
+end
+
+save(fullfile(PathName,[FileName, '.mat']), 'wl', 'RawData', 'StepSize')
+
+figure
+MeanMap = mean(RawData(:,:,and(wl>=Treshold_region(1), wl<=Treshold_region(2))),3);
+imagesc(MeanMap)
+caxis([min(MeanMap(~isoutlier(MeanMap))) max(MeanMap(~isoutlier(MeanMap)))])
+pbaspect([length(X) length(Y) 1])
+
+clc; disp('Done!')
 %% Closing protocol
-
-% If Necessary home:
-% result = calllib('libximc','command_move', device_id_X, start_position_X, start_uposition_X);
-% result = calllib('libximc','command_move', device_id_Y, start_position_Y, start_uposition_Y);
-
-% Go to (X_min, Y_min)
-result = calllib('libximc','command_move', device_id_X, X_min, start_uposition_X);
-result = calllib('libximc','command_move', device_id_Y, Y_min, start_uposition_Y);
 
 % Close stage
 device_id_ptr_Y = libpointer('int32Ptr', device_id_Y);
