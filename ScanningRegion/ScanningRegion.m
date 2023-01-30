@@ -227,8 +227,8 @@ clear h i Iter pos_rect Region Region_cropped result spectrum x X y Y
 
 %% Fast Preliminary Scanning of The Determined Region
 
-X = [X_min: StepSize : X_min + ceil(X_max-X_min)];
-Y = [Y_min: StepSize : Y_min + ceil(Y_max-Y_min)];
+X = [X_min: StepSize : X_max];
+Y = [Y_min: StepSize : Y_max];
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
 
 for y = 1:length(Y)
@@ -269,8 +269,8 @@ if num_of_average > 0
 end
 wrapper.setIntegrationTime(0,IntTime);
 
-X = [X_min: StepSize : X_min + ceil(X_max-X_min)];
-Y = [Y_min: StepSize : Y_min + ceil(Y_max-Y_min)];
+X = [X_min: StepSize : X_max];
+Y = [Y_min: StepSize : Y_max];
 
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
 
