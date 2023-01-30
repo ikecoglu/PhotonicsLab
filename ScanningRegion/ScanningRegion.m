@@ -160,7 +160,7 @@ Y = round(linspace(start_position_Y, start_position_Y + LY, nSplit));
 for Iter = 1:nIteration
     
     spectrum = wrapper.getSpectrum(0)'; %trash spectrum
-    Region = [];
+    Region = nan(nSplit,nSplit);
     
     for y = 1:nSplit
         
@@ -172,7 +172,7 @@ for Iter = 1:nIteration
             
             spectrum = wrapper.getSpectrum(0)';
             
-            Region(y,x,:) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+            Region(y,x) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
         end
         if mod(y,2)==0
             Region(y,:) = flip(Region(y,:));
@@ -186,7 +186,7 @@ for Iter = 1:nIteration
     
     figure
     imagesc(Region)
-    caxis([min(min(Region)) 2500])
+    clim([min(min(Region)) 2500])
     h =  imrect();
     clc; disp('To continue press enter:')
     pause;
@@ -205,7 +205,7 @@ for Iter = 1:nIteration
     
     figure
     imagesc(Region_cropped)
-    caxis([min(min(Region)) 2500])
+    clim([min(min(Region)) 2500])
     title('Cropped Region')
     clc; disp('To continue press enter:')
     pause;
@@ -220,16 +220,18 @@ for Iter = 1:nIteration
     
 end
 
-clc; disp(sprintf("Starting position: X = %d, Y = %d", X_min, Y_min))
-disp(sprintf("Number of steps X = %d ; Number of steps Y = %d", ceil((X_max-X_min)/StepSize), ceil((Y_max-Y_min)/StepSize)))
+clc; fprintf("Starting position: X = %d, Y = %d\n", X_min, Y_min)
+fprintf("Number of steps X = %d ; Number of steps Y = %d\n", ceil((X_max-X_min)/StepSize), ceil((Y_max-Y_min)/StepSize))
 
 clear h i Iter pos_rect Region Region_cropped result spectrum x X y Y
 
 %% Fast Preliminary Scanning of The Determined Region
 
-X = [X_min: StepSize : X_max];
-Y = [Y_min: StepSize : Y_max];
+X = X_min: StepSize : X_max;
+Y = Y_min: StepSize : Y_max;
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+
+Map = nan(length(Y),length(X));
 
 for y = 1:length(Y)
     clc; disp(round(100*y/length(Y)))
@@ -240,7 +242,7 @@ for y = 1:length(Y)
         
         spectrum = wrapper.getSpectrum(0)';
         
-        Map(y,x,:) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+        Map(y,x) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
     end
     if mod(y,2)==0
         Map(y,:) = flip(Map(y,:));
@@ -254,7 +256,7 @@ end
 
 figure
 imagesc(Map)
-caxis([min(Map(~isoutlier(Map))) max(Map(~isoutlier(Map)))])
+clim([min(Map(~isoutlier(Map))) max(Map(~isoutlier(Map)))])
 pbaspect([length(X) length(Y) 1])
 
 clear x X y Y spectrum
@@ -269,10 +271,12 @@ if num_of_average > 0
 end
 wrapper.setIntegrationTime(0,IntTime);
 
-X = [X_min: StepSize : X_max];
-Y = [Y_min: StepSize : Y_max];
+X = X_min: StepSize : X_max;
+Y = Y_min: StepSize : Y_max;
 
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+RawData = nan(length(Y), length(X), length(wl));
+
 tic
 for y = 1:length(Y)
     clc; disp(round(100*y/length(Y)))
@@ -300,7 +304,7 @@ save(fullfile(PathName,[FileName, '.mat']), 'wl', 'RawData', 'StepSize')
 figure
 MeanMap = mean(RawData(:,:,and(wl>=Treshold_region(1), wl<=Treshold_region(2))),3);
 imagesc(MeanMap)
-caxis([min(MeanMap(~isoutlier(MeanMap))) max(MeanMap(~isoutlier(MeanMap)))])
+clim([min(MeanMap(~isoutlier(MeanMap))) max(MeanMap(~isoutlier(MeanMap)))])
 pbaspect([length(X) length(Y) 1])
 
 clc; disp('Done!')
