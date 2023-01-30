@@ -254,7 +254,7 @@ end
 
 figure
 imagesc(Map)
-caxis([1600 2500])
+caxis([min(Map(~isoutlier(Map))) max(Map(~isoutlier(Map)))])
 pbaspect([length(X) length(Y) 1])
 
 clear x X y Y spectrum
@@ -273,7 +273,7 @@ X = [X_min: StepSize : X_max];
 Y = [Y_min: StepSize : Y_max];
 
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
-
+tic
 for y = 1:length(Y)
     clc; disp(round(100*y/length(Y)))
     for x = 1:length(X)
@@ -304,6 +304,7 @@ caxis([min(MeanMap(~isoutlier(MeanMap))) max(MeanMap(~isoutlier(MeanMap)))])
 pbaspect([length(X) length(Y) 1])
 
 clc; disp('Done!')
+toc
 %% Closing protocol
 
 % Close stage
