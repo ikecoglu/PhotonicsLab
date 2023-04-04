@@ -140,6 +140,8 @@ result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
 %% Show region - to see if there is any part of the sample outside
 
+pause(3)
+
 result = calllib('libximc','command_move', device_id_X, start_position_X+LX, start_uposition_X);
 result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
 
@@ -276,6 +278,11 @@ Y = Y_min: StepSize : Y_max;
 
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
 RawData = nan(length(Y), length(X), length(wl));
+max_spec = zeros(1,length(wl));
+min_spec = 1e6*ones(1,length(wl));
+
+figure
+set(gcf, 'Position', get(0, 'Screensize'));
 
 tic
 for y = 1:length(Y)
@@ -286,6 +293,14 @@ for y = 1:length(Y)
         result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
         
         spectrum = wrapper.getSpectrum(0)';
+
+        log_max = spectrum > max_spec;
+        log_min = spectrum < min_spec;
+        max_spec(log_max) = spectrum(log_max);
+        min_spec(log_min) = spectrum(log_min);
+        plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
+        legend('Max', 'Current', 'Min')
+        pause(0.0001)
 
         RawData(y,x,:) = spectrum;
     end
