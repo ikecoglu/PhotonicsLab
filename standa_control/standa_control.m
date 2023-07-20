@@ -3,16 +3,16 @@ clear; close all; clc;
 % 1 step = 256 ustep | 1 step = 2.5 um
 
 StepSize = 256*10; %in terms of microsteps
-num_of_step_A=20; % num of steps in side A
-num_of_step_B=40; % num of steps in side B
+num_of_step_A = 20; % num of steps in side A
+num_of_step_B = 40; % num of steps in side B
 IntTime = 1e5; % integration time in terms of microsecond
 num_of_average = 0;%number of spectrums to take average of in each location, no average = 0
 
-% don't touch this part
+% don't touch this part unless necessary
 step = (StepSize - mod(StepSize, 256) ) / 256;
 ustep = mod(StepSize, 256);
-speed = 1000;
-uspeed = 1000;
+speed = 1000; % steps / s
+uspeed = 1000; % steps / s
 %% Spectrometer
 
 wrapper = com.oceanoptics.omnidriver.api.wrapper.Wrapper();
