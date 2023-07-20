@@ -2,7 +2,7 @@ clear; close all; clc;
 %% Parameters
 % 1 step = 256 ustep | 1 step = 2.5 um
 
-StepSize = 256*1; %in terms of microsteps
+StepSize = 256*100; %in terms of microsteps
 num_of_step_A = 20; % num of steps in side A
 num_of_step_B = 40; % num of steps in side B
 starting_speed = 1; % step(2.5 um)/s
@@ -108,8 +108,9 @@ start_uposition2 = state_s2.uCurPosition;
 %%
 
 while speed < final_speed
-
+    clc
     fprintf("Moving %.1f um with speed %.2f um/s\n", StepSize*2.5/256, speed*2.5)
+    
     state_s2 = ximc_get_status(device_id2);
     cur_position2 = state_s2.CurPosition;
     cur_uposition2 = state_s2.uCurPosition;
@@ -124,7 +125,6 @@ while speed < final_speed
 
     speed = speed * 2;
     uspeed = speed;
-
     ximc_set_speed(device_id2, speed , uspeed);
 
     pause(2)
