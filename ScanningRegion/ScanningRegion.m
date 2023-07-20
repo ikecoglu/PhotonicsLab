@@ -7,7 +7,6 @@ IntTime = 3e5; % integration time in terms of microsecond
 num_of_average = 0; %number of spectrums to take average of in each location, no average = 0
 BoxcarWidth = 1; 
 
-
 speed = 1000; % steps / s
 uspeed = 1000; % steps / s
 
@@ -153,8 +152,6 @@ result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
 
 result = calllib('libximc','command_move', device_id_Y, start_position_Y, start_uposition_Y);
 result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
-
-%% Region Determination
 
 %% Region Determination
 
