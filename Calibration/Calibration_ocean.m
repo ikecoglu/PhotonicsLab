@@ -1,22 +1,35 @@
-clear all; close all; clc;
+clear; close all; clc;
+if isempty(gcp('nocreate')); parpool; end;
 %% Settings
 
 csv_save = false;
-cutting_lims = [0 2500]; %for not cutting leave empty (unit: cm^-1)
+cutting_lims = []; %for not cutting leave empty (unit: cm^-1)
 %% Importing data - Not ordered
 
 path = uigetdir('Select data folder.');
 List = dir(path);
-dataSize = length(List)-2;
+dataSize = length(List);
+j = 1;
 for i=1:dataSize
     clc;
-    disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i+2).name));
-    spec(i,:,:) = dlmread(fullfile(path, List(i+2).name), "",14,0);
+    if List(i).name(1) ~= '.'
+        disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i).name));
+        spec(j,:,:) = dlmread(fullfile(path, List(i).name), "",14,0);
+        j = j + 1;
+    end
 end
+dataSize = size(spec,1);
 %% Raman Shift Conversion and Calibration
 
-RSspec = RamanShiftConverter(dataSize,spec);
-[Calx,CalInt] = AxisCorr(dataSize,RSspec);Calx=Calx(1,:);
+Calx = zeros(dataSize, 2851);
+CalInt = zeros(dataSize, 2851);
+
+parfor i=1:dataSize
+    RSspec = RamanShiftConverter(dataSize, spec(i,:,:));
+    [Calx(i,:), CalInt(i,:)] = AxisCorr(RSspec);
+end
+Calx = Calx(1,:);
+disp("Raman Shift Conversion and Calibration: Done!")
 %% Cutting
 
 if ~isempty(cutting_lims)
@@ -26,6 +39,7 @@ if ~isempty(cutting_lims)
     CalInt = CalInt(:,start:stop);
     Calx = Calx(start:stop);
 end
+
 %% Plotting
 
 plot(Calx, CalInt);
