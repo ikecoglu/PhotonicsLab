@@ -125,6 +125,8 @@ while speed < final_speed
     uspeed = speed;
 
     ximc_set_speed(device_id2, speed , uspeed);
+
+    pause(2)
 end
 %% Closing protocol
 
