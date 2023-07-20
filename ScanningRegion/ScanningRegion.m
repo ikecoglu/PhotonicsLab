@@ -13,7 +13,7 @@ uspeed = 1000; % steps / s
 
 %% Region Determination Parameters
 
-LX = 1500; % Max value of X length in steps, for the initial scan
+LX = 3500; % Max value of X length in steps, for the initial scan
 LY = 2000; % Max value of Y length in steps, for the initial scan
 nIteration = 3; % Number of times the regions is being shrunk
 nSplit = 10;
@@ -126,9 +126,9 @@ state_X = ximc_get_status(device_id_X);
 %% Move from sample center to starting position
 
 % Determine starting position
-start_position_Y = state_Y.CurPosition-LY/3;
+start_position_Y = state_Y.CurPosition-LY/2;
 start_uposition_Y = state_Y.uCurPosition;
-start_position_X = state_X.CurPosition-LX/3;
+start_position_X = state_X.CurPosition-LX/2;
 start_uposition_X = state_X.uCurPosition;
 
 % Make uPosition 0
@@ -153,6 +153,8 @@ result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
 
 result = calllib('libximc','command_move', device_id_Y, start_position_Y, start_uposition_Y);
 result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+
+%% Region Determination
 
 %% Region Determination
 
@@ -188,7 +190,9 @@ for Iter = 1:nIteration
     
     figure
     imagesc(Region)
-    clim([min(min(Region)) 2500])
+    caxis([min(min(Region)) 2500]) 
+    axis equal
+    axis tight
     h =  imrect();
     clc; disp('To continue press enter:')
     pause;
@@ -207,7 +211,9 @@ for Iter = 1:nIteration
     
     figure
     imagesc(Region_cropped)
-    clim([min(min(Region)) 2500])
+    caxis([min(min(Region)) 2500])
+    axis equal
+    axis tight
     title('Cropped Region')
     clc; disp('To continue press enter:')
     pause;
@@ -229,8 +235,8 @@ clear h i Iter pos_rect Region Region_cropped result spectrum x X y Y
 
 %% Fast Preliminary Scanning of The Determined Region
 
-X = X_min: StepSize : X_max;
-Y = Y_min: StepSize : Y_max;
+X = X_min: StepSize*2 : X_max;
+Y = Y_min: StepSize*2 : Y_max;
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
 
 Map = nan(length(Y),length(X));
@@ -258,7 +264,7 @@ end
 
 figure
 imagesc(Map)
-clim([min(Map(~isoutlier(Map))) max(Map(~isoutlier(Map)))])
+caxis([min(Map(~isoutlier(Map))) max(Map(~isoutlier(Map)))])
 pbaspect([length(X) length(Y) 1])
 
 clear x X y Y spectrum
@@ -314,12 +320,12 @@ for y = 1:length(Y)
     
 end
 
-save(fullfile(PathName,[FileName, '.mat']), 'wl', 'RawData', 'StepSize')
+save(fullfile(PathName,[FileName, '.mat']), 'wl', 'RawData', 'StepSize','IntTime')
 
 figure
 MeanMap = mean(RawData(:,:,and(wl>=Treshold_region(1), wl<=Treshold_region(2))),3);
 imagesc(MeanMap)
-clim([min(MeanMap(~isoutlier(MeanMap))) max(MeanMap(~isoutlier(MeanMap)))])
+caxis([min(MeanMap(~isoutlier(MeanMap))) max(MeanMap(~isoutlier(MeanMap)))])
 pbaspect([length(X) length(Y) 1])
 
 clc; disp('Done!')
