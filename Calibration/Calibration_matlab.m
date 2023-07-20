@@ -48,7 +48,7 @@ parfor i=1:dataSize
 %     showTimeToCompletion( p/100, [], [], startTime );
 
     RSspec = RamanShiftConverter(dataSize, spec(i,:,:));
-    [Calx(i,:), CalInt(i,:)] = AxisCorr(dataSize, RSspec);
+    [Calx(i,:), CalInt(i,:)] = AxisCorr(RSspec);
 end
 Calx = Calx(1,:);
 disp("Raman Shift Conversion and Calibration: Done!")

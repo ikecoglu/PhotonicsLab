@@ -61,7 +61,7 @@ for k = 1:n_dir
     parfor i=1:dataSize
 
         RSspec = RamanShiftConverter(dataSize, spec(i,:,:));
-        [Calx(i,:), CalInt(i,:)] = AxisCorr(dataSize, RSspec);
+        [Calx(i,:), CalInt(i,:)] = AxisCorr(RSspec);
     end
     Calx = Calx(1,:);
     disp("Raman Shift Conversion and Calibration: Done!")
