@@ -1,4 +1,4 @@
-function [AxisCorrX,AxisCorrInt] = AxisCorr(dataSize,input)
+function [AxisCorrX,AxisCorrInt] = AxisCorr(input)
 wn1 = -87; wn2 = 2763;
 
 inp(:,2)=input(1,:,2);
