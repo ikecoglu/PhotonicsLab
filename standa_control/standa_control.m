@@ -2,7 +2,7 @@ clear; close all; clc;
 %% Parameters
 % 1 step = 256 ustep | 1 step = 2.5 um
 
-StepSize = 128; %in terms of microsteps
+StepSize = 256*10; %in terms of microsteps
 num_of_step_A=20; % num of steps in side A
 num_of_step_B=40; % num of steps in side B
 IntTime = 1e5; % integration time in terms of microsecond
@@ -45,16 +45,16 @@ end
 if not(libisloaded('libximc'))
     disp('Loading library')
     if ispc
-        addpath(fullfile(pwd,'../../ximc/win64/wrappers/matlab/'));
+        addpath(fullfile(pwd,'./ximc-2.10.5/ximc/win64/wrappers/matlab/'));
         if (is64bit)
-            addpath(fullfile(pwd,'../../ximc/win64/'));
+            addpath(fullfile(pwd,'./ximc-2.10.5/ximc/win64/'));
             [notfound,warnings] = loadlibrary('libximc.dll', @ximcm)
         else
-            addpath(fullfile(pwd,'../../ximc/win32/'));
+            addpath(fullfile(pwd,'./ximc-2.10.5/ximc/win32/'));
             [notfound, warnings] = loadlibrary('libximc.dll', 'ximcm.h', 'addheader', 'ximc.h')
         end
     elseif ismac
-        addpath(fullfile(pwd,'../../ximc/'));
+        addpath(fullfile(pwd,'./ximc-2.10.5/ximc/'));
         [notfound, warnings] = loadlibrary('libximc.framework/libximc', 'ximcm.h', 'mfilename', 'ximcm.m', 'includepath', 'libximc.framework/Versions/Current/Headers', 'addheader', 'ximc.h')
     elseif isunix
         [notfound, warnings] = loadlibrary('libximc.so', 'ximcm.h', 'addheader', 'ximc.h')
@@ -64,7 +64,7 @@ end
 % Set bindy (network) keyfile. Must be called before any call to "enumerate_devices" or "open_device" if you
 % wish to use network-attached controllers. Accepts both absolute and relative paths, relative paths are resolved
 % relative to the process working directory. If you do not need network devices then "set_bindy_key" is optional.
-calllib('libximc','set_bindy_key', '../../ximc/win32/keyfile.sqlite')
+calllib('libximc','set_bindy_key', './ximc-2.10.5/ximc/win32/keyfile.sqlite')
 
 probe_flags = 1 + 4; % ENUMERATE_PROBE and ENUMERATE_NETWORK flags used
 enum_hints = 'addr=192.168.1.1,172.16.2.3';
