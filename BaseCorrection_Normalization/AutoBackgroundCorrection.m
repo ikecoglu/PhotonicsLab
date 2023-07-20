@@ -2,10 +2,10 @@ clear; close all; clc;
 if isempty(gcp('nocreate')); parpool; end
 %% Parameters - User input
 
-n_file = 8; %number of mat files to be selected
+n_file = 1; %number of mat files to be selected
 SaveCSV = false;
-PlotFigures = false;
-Alarm = true;
+PlotFigures = true;
+Alarm = false;
 Cut = [400, 1800];
 Polynomial_order = 5;
 
@@ -14,6 +14,7 @@ Polynomial_order = 5;
 [name, path] = uigetfile('*.mat','Select background data');
 load(fullfile(path,name))
 Background = mean(CalInt, 1);
+
 %% Selecting folders
 
 disp('Selected files:')
@@ -37,19 +38,20 @@ end
 indx_s = find(Calx==Cut(1));
 indx_f = find(Calx==Cut(end));
 Background = Background(indx_s:indx_f);
-%%
+
+%% Automatic background correction
 
 for k = 1:n_file
     
     path = paths{k}
     filenamepath = path(1:end-4);
     load(path)
-    %% Cutting data based on base points
+    % Cutting data based on base points
     
     CalInt = CalInt(:, indx_s:indx_f);
     Calx = Calx(:, indx_s:indx_f);
 
-    %% Plotting CAL data
+    % Plotting CAL data
 
     if PlotFigures
         figure
@@ -61,7 +63,7 @@ for k = 1:n_file
         title('CAL spectra')
     end
 
-    %% Base correction
+    % Base correction
 
     DataSize = size(CalInt, 1);
     BCInt = nan(DataSize, length(Calx));
@@ -78,7 +80,7 @@ for k = 1:n_file
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('BC spectra')
     end
-    %% Normalization
+    % Normalization
 
     NormInt = normalization(BCInt);
 
@@ -91,7 +93,7 @@ for k = 1:n_file
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('NORM spectra')
     end
-    %% Saving
+    % Saving
 
     datasize = size(BCInt, 1);
 
