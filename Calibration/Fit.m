@@ -1,4 +1,4 @@
-function [fitresult, gof] = createFit1(Rx, Ry)
+function [fitresult, gof] = Fit(Rx, Ry)
 %% Fit: 'untitled fit 1'.
 [xData, yData] = prepareCurveData( Rx, Ry );
 % Set up fittype and options.
