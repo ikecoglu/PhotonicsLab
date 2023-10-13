@@ -1,36 +1,37 @@
 clear; close all; clc;
 if isempty(gcp('nocreate')); parpool; end
+
 %% Parameters - User input
 
-n_file = 1; %number of mat files to be selected
+n_file = 4; %number of mat files to be selected
 SaveCSV = false;
 PlotFigures = true;
 Alarm = false;
-Cut = [400, 1800];
+Cut = [200, 1800];
 Polynomial_order = 5;
 
 %% Load background data
 
-[name, path] = uigetfile('*.mat','Select background data');
+disp('Select the background data.')
+[name, path] = uigetfile('*.mat');
+fprintf('Background: %s\n', name)
 load(fullfile(path,name))
 Background = mean(CalInt, 1);
+Splited = split(path, filesep);
+name = char(Splited(end));
+pathup = path(1:end-length(name));
 
 %% Selecting folders
 
-disp('Selected files:')
 for k=1:n_file
-    if k==1
-        [name, path] = uigetfile('*.mat', sprintf('Select data folder number %d', k));
-        paths{k} = fullfile(path,name);
-    else
-        [name, path] = uigetfile([pathup '*.mat'], sprintf('Select data folder number %d', k));
-        paths{k} = fullfile(path,name);
-    end
+    fprintf('Select file %d\n', k)
+    [name, path] = uigetfile(pathup, '*.mat');
+    fprintf('File %d: %s\n', k, name)
+    paths{k} = fullfile(path,name);
     path = paths{k};
     Splited = split(path, filesep);
     name = char(Splited(end));
     pathup = path(1:end-length(name));
-    fprintf('%d - %s\n', k, name);
 end
 
 %% Cutting background
@@ -42,12 +43,13 @@ Background = Background(indx_s:indx_f);
 %% Automatic background correction
 
 for k = 1:n_file
-    
-    path = paths{k}
+
+    path = paths{k};
     filenamepath = path(1:end-4);
     load(path)
+
     % Cutting data based on base points
-    
+
     CalInt = CalInt(:, indx_s:indx_f);
     Calx = Calx(:, indx_s:indx_f);
 
@@ -118,6 +120,8 @@ for k = 1:n_file
         writetable(Tbl, [filenamepath '_NORM.csv'])
     end
 end
+
+disp('Done!')
 %% Alarm
 
 if Alarm
