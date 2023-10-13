@@ -1,75 +1,111 @@
 clear; close all; clc;
-if isempty(gcp('nocreate')); parpool; end;
+if isempty(gcp('nocreate')); parpool; end
+
 %% Settings
 
+n_dir = 11; %number of folders to be selected before hand
 csv_save = false;
-cutting_lims = []; %for not cutting leave empty (unit: cm^-1)
-%% Importing data - Not ordered
+alarm = false;
+cutting_lims = [0 2500]; %for not cutting leave empty (unit: cm^-1)
+plotting = true;
 
-path = uigetdir('Select data folder.');
-List = dir(path);
-dataSize = length(List);
-j = 1;
-for i=1:dataSize
-    clc;
-    if List(i).name(1) ~= '.'
-        disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i).name));
-        spec(j,:,:) = dlmread(fullfile(path, List(i).name), "",14,0);
-        j = j + 1;
+%% Selecting folders
+
+disp('Selected files:')
+for k=1:n_dir
+    if k==1
+        paths{k} = uigetdir(sprintf('Select data folder number %d', k));
+    else
+        paths{k} = uigetdir(sprintf(pathup, 'Select data folder number %d', k));
     end
-end
-dataSize = size(spec,1);
-%% Raman Shift Conversion and Calibration
-
-Calx = zeros(dataSize, 2851);
-CalInt = zeros(dataSize, 2851);
-
-parfor i=1:dataSize
-    RSspec = RamanShiftConverter(dataSize, spec(i,:,:));
-    [Calx(i,:), CalInt(i,:)] = AxisCorr(RSspec);
-end
-Calx = Calx(1,:);
-disp("Raman Shift Conversion and Calibration: Done!")
-%% Cutting
-
-if ~isempty(cutting_lims)
-    start = find(Calx == cutting_lims(1));
-    stop = find(Calx == cutting_lims(2));
-
-    CalInt = CalInt(:,start:stop);
-    Calx = Calx(start:stop);
+    path = paths{k};
+    Splited = split(path, filesep);
+    name = char(Splited(end));
+    pathup = path(1:end-length(name));
+    fprintf('%d - %s\n', k, name);
 end
 
-%% Plotting
+%% Calibration
 
-plot(Calx, CalInt);
-xlabel('Raman Shift (cm^{-1})','FontSize',13)
-ylabel('Raman Intensity (a.u.)','FontSize',13)
-box on;
-set(gca,'FontSize',13,'LineWidth',2);
-set(gcf,'renderer','painters');
-%% Save data as mat
+for k = 1:n_dir
 
-Splited = split(path, filesep);
-name = char(Splited(end));
-pathup = path(1:end-length(name));
+    % Importing Data
 
-save([pathup name '.mat'],'Calx','CalInt')
-fprintf('Data %s has been saved in folder %s\n', name, pathup)
-%% Save data as csv
-
-if csv_save
-    Tbl = table;
-    Tbl.X = Calx';
+    path = paths{k};
+    List = dir(path);
+    if strcmp(List(3).name, '.DS_Store')
+        offset = 3;
+    else
+        offset = 2;
+    end
+    dataSize = length(List)-offset;
+    spec = zeros(dataSize, 1044, 2);
     for i=1:dataSize
-        cname = ['y' num2str(i)];
-        Tbl.(cname) = CalInt(i,:)';
+        clc;
+        disp(strcat("Importing data: ", num2str((i/dataSize)*100), "% - ", List(i+offset).name));
+        spec(i,:,:) = dlmread(fullfile(path, List(i+offset).name), "",14,0);
     end
-    writetable(Tbl, [pathup name '.csv'])
+    disp("Reading Data: Done!")
+
+    % Raman Shift Conversion and Calibration
+
+    Calx = zeros(dataSize, 2851);
+    CalInt = zeros(dataSize, 2851);
+
+    parfor i=1:dataSize
+        RSspec = RamanShiftConverter(dataSize, spec(i,:,:));
+        [Calx(i,:), CalInt(i,:)] = AxisCorr(RSspec);
+    end
+    Calx = Calx(1,:);
+    disp("Raman Shift Conversion and Calibration: Done!")
+
+    % Cutting
+
+    if ~isempty(cutting_lims)
+        start = find(Calx == cutting_lims(1));
+        stop = find(Calx == cutting_lims(2));
+
+        CalInt = CalInt(:,start:stop);
+        Calx = Calx(start:stop);
+    end
+
+    % Plotting
+
+    plot(Calx, CalInt);
+    xlabel('Raman Shift (cm^{-1})','FontSize',13)
+    ylabel('Raman Intensity (a.u.)','FontSize',13)
+    box on;
+    set(gca,'FontSize',13,'LineWidth',2);
+    set(gcf,'renderer','painters');
+
+    % Save data as mat
+
+    Splited = split(path, filesep);
+    name = char(Splited(end));
+    pathup = path(1:end-length(name));
+
+    save([pathup name '.mat'],'Calx','CalInt')
+    fprintf('Data %s has been saved in folder %s\n', name, pathup)
+
+    % Save data as csv
+
+    if csv_save
+        Tbl = table;
+        Tbl.X = Calx';
+        for i=1:dataSize
+            cname = ['y' num2str(i)];
+            Tbl.(cname) = CalInt(i,:)';
+        end
+        writetable(Tbl, [pathup name '.csv'])
+    end
+
 end
+
 %% Alarm
 
-for i=1:3
-    sound(sin(1:10000));
-    pause(2)
+if alarm
+    for i=1:3
+        sound(sin(1:10000));
+        pause(2)
+    end
 end
