@@ -101,6 +101,8 @@ for k = 1:n_dir
 
 end
 
+disp('Done!')
+
 %% Alarm
 
 if alarm
