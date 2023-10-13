@@ -4,11 +4,16 @@ if isempty(gcp('nocreate')); parpool; end
 %% Parameters - User input
 
 n_file = 4; %number of mat files to be selected
-SaveCSV = false;
-PlotFigures = true;
-Alarm = false;
 Cut = [200, 1800];
 Polynomial_order = 5;
+
+PlotFigures = true;
+SavePNG = true;
+SaveFig = false;
+
+SaveCSV = false;
+
+Alarm = false;
 
 %% Load background data
 
@@ -63,6 +68,14 @@ for k = 1:n_file
         box on
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('CAL spectra')
+
+        if SavePNG
+            print(gcf,sprintf('%s_CAL.png', filenamepath),'-dpng','-r1000');
+        end
+        if SaveFig
+            saveas(gcf,sprintf('%s_CAL.fig', filenamepath));
+        end
+        close;
     end
 
     % Base correction
@@ -81,7 +94,16 @@ for k = 1:n_file
         box on
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('BC spectra')
+
+        if SavePNG
+            print(gcf,sprintf('%s_BC.png', filenamepath),'-dpng','-r1000');
+        end
+        if SaveFig
+            saveas(gcf,sprintf('%s_BC.fig', filenamepath));
+        end
+        close;
     end
+
     % Normalization
 
     NormInt = normalization(BCInt);
@@ -94,7 +116,16 @@ for k = 1:n_file
         box on
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('NORM spectra')
+
+        if SavePNG
+            print(gcf,sprintf('%s_NORM.png', filenamepath),'-dpng','-r1000');
+        end
+        if SaveFig
+            saveas(gcf,sprintf('%s_NORM.fig', filenamepath));
+        end
+        close;
     end
+
     % Saving
 
     datasize = size(BCInt, 1);
@@ -122,6 +153,7 @@ for k = 1:n_file
 end
 
 disp('Done!')
+
 %% Alarm
 
 if Alarm
