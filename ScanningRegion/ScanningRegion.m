@@ -2,27 +2,25 @@ clear; close all; clc;
 %% Scanning Parameters
 % 1 step = 256 ustep | 1 step = 2.5 um
 
-StepSize = 8; % Step size to use after determining the region. In steps.
+StepSize = 20; % Step size to use after determining the region. In steps.
 IntTime = 3e5; % integration time in terms of microsecond
 num_of_average = 0; %number of spectrums to take average of in each location, no average = 0
-BoxcarWidth = 1; 
+BoxcarWidth = 1;
 
 speed = 1000; % steps / s
 uspeed = 1000; % steps / s
 
 %% Region Determination Parameters
 
-Size_X = 1000; % Estimated size of the sample in X direction in um
-Size_Y = 1000; % Estimated size of the sample in X direction in um
-
-nIteration = 4; % Number of times the regions is being shrunk
+Size_X = 3000; % Estimated size of the sample in X direction in um
+Size_Y = 3000; % Estimated size of the sample in X direction in um
 nSplit = 10;
 
 Treshold_region = [810, 830]; % Region of spectrum to use for thresholding in nm
-Threshold = 10/100; % Threshold of intensity in terms of percent of the max value in the ROI
+Threshold = 50; % Threshold of background corrected intensity in terms of percent of the max value in the ROI
 
 IntTime_region = 1e5; % integration time in terms of microsecond
-num_of_average_region = 2; %number of spectrums to take average of in each location, no average = 0
+num_of_average_region = 1; %number of spectrums to take average of in each location, no average = 0
 
 %% Spectrometer
 
@@ -129,7 +127,7 @@ state_X = ximc_get_status(device_id_X);
 % Determine starting position
 
 LX = round(Size_X/2.5);
-LY = round(Size_Y/2.5); 
+LY = round(Size_Y/2.5);
 
 start_position_Y = state_Y.CurPosition-LY;
 start_uposition_Y = state_Y.uCurPosition;
@@ -161,89 +159,140 @@ result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
 %% Region Determination
 
-X = round(linspace(start_position_X, start_position_X + 2 * LX, nSplit));
-Y = round(linspace(start_position_Y, start_position_Y + 2 * LY, nSplit));
+X_min = start_position_X;
+X_max = start_position_X + 2 * LX;
 
-for Iter = 1:nIteration
+Y_min = start_position_Y;
+Y_max = start_position_Y + 2 * LY;
+
+X = round(linspace(X_min, X_max, nSplit));
+Y = round(linspace(Y_min, Y_max, nSplit));
+
+spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+background = wrapper.getSpectrum(0)';
+signal = 0;
+
+for y = 1:nSplit
     
-    spectrum = wrapper.getSpectrum(0)'; %trash spectrum
-    Region = nan(nSplit,nSplit);
+    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
+    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+    
+    for x = 1:nSplit
+        
+        result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
+        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+        
+        spectrum = wrapper.getSpectrum(0)';
+        spectrum = spectrum - background;
+        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+        
+        if floor(abs(spectrum)) > Threshold
+            Y_min = Y(y-1)
+            signal = 1;
+            break
+        end
+    end
+    if signal
+        break
+    end
+    X = flip(X);
+end
+
+Y = round(linspace(Y_min, Y_max, nSplit));
+signal = 0;
+
+for y = nSplit:-1:1
+    
+    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
+    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+    
+    for x = 1:nSplit
+        
+        result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
+        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+        
+        spectrum = wrapper.getSpectrum(0)';
+        spectrum = spectrum - background;
+        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+        
+        if floor(abs(spectrum)) > Threshold
+            Y_max = Y(y+1)
+            signal = 1;
+            break
+        end
+    end
+    if signal
+        break
+    end
+    X = flip(X);
+end
+
+Y = round(linspace(Y_min, Y_max, nSplit));
+X = round(linspace(X_min, X_max, nSplit));
+signal = 0;
+
+for x = 1:nSplit
+    
+    result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
+    result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
     
     for y = 1:nSplit
-        
-        clc; disp(100*y/length(Y))
-        for x = 1:nSplit
-            
-            result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
-            result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
-            
-            spectrum = wrapper.getSpectrum(0)';
-            
-            Region(y,x) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
-        end
-        if mod(y,2)==0
-            Region(y,:) = flip(Region(y,:));
-        end
-        X = flip(X);
         
         result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
         result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
         
+        spectrum = wrapper.getSpectrum(0)';
+        spectrum = spectrum - background;
+        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+        
+        if floor(abs(spectrum)) > Threshold
+            X_min = X(x-1)
+            signal = 1;
+            break
+        end
     end
-    
-    Region_mask = Region > max(max(Region))*Threshold;
-    
-    X_sum = sum(Region_mask, 1);
-
-    i = find(~X_sum==0, 1);
-    if i == 1
-        X_min = X(1);
-    else
-        X_min = X(i-1);
+    if signal
+        break
     end
-
-    i = find(~X_sum==0, 1, 'last');
-    if i == nSplit
-        X_max = X(end);
-    else
-        X_max = X(i+1);
-    end
-
-    Y_sum = sum(Region_mask, 2);
-
-    i = find(~Y_sum==0, 1);
-    if i == 1
-        Y_min = Y(1);
-    else
-        Y_min = Y(i-1);
-    end
-
-    i = find(~Y_sum==0, 1, 'last');
-    if i == nSplit
-        Y_max = Y(end);
-    else
-        Y_max = Y(i+1);
-    end
-
-    subplot(1,nIteration,Iter)
-    imagesc(Region_mask)
-    axis equal
-    axis tight
-    title(sprintf('Iteration: %d',Iter))
-    
-    if Iter == nIteration-1
-        nSplit = 2*nSplit;
-    end
-    
-    X = round(linspace(X_min, X_max, nSplit));
-    Y = round(linspace(Y_min, Y_max, nSplit));
-    
+    Y = flip(Y);
 end
+
+X = round(linspace(X_min, X_max, nSplit));
+signal = 0;
+
+for x = nSplit:-1:1
+    
+    result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
+    result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+    
+    for y = 1:nSplit
+        
+        result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
+        result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+        
+        spectrum = wrapper.getSpectrum(0)';
+        spectrum = spectrum - background;
+        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+        
+        if floor(abs(spectrum)) > Threshold
+            X_max = X(x+1)
+            signal = 1;
+            break
+        end
+    end
+    if signal
+        break
+    end
+    Y = flip(Y);
+end
+
+X = round(linspace(X_min, X_max, nSplit));
+Y = round(linspace(Y_min, Y_max, nSplit));
 
 clc; fprintf("Starting position: X = %d, Y = %d\n", X_min, Y_min)
 fprintf("Number of steps X = %d ; Number of steps Y = %d\n", ceil((X_max-X_min)/StepSize), ceil((Y_max-Y_min)/StepSize))
 
-clear h i Iter pos_rect Region Region_cropped result spectrum x X y Y
+clear h i Iter pos_rect Region Region_cropped result spectrum x X y Y X_delta Y_delta
 
 %% Fast Preliminary Scanning of The Determined Region
 
@@ -311,7 +360,7 @@ for y = 1:length(Y)
         result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
         
         spectrum = wrapper.getSpectrum(0)';
-
+        
         log_max = spectrum > max_spec;
         log_min = spectrum < min_spec;
         max_spec(log_max) = spectrum(log_max);
@@ -319,7 +368,7 @@ for y = 1:length(Y)
         plot(wl, max_spec, wl, spectrum, wl, min_spec, 'LineWidth', 1.5);
         legend('Max', 'Current', 'Min')
         pause(0.0001)
-
+        
         RawData(y,x,:) = spectrum;
     end
     if mod(y,2)==0
