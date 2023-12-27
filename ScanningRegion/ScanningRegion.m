@@ -12,12 +12,14 @@ uspeed = 1000; % steps / s
 
 %% Region Determination Parameters
 
-LX = 3500; % Max value of X length in steps, for the initial scan
-LY = 2000; % Max value of Y length in steps, for the initial scan
-nIteration = 3; % Number of times the regions is being shrunk
+Size_X = 1000; % Estimated size of the sample in X direction in um
+Size_Y = 1000; % Estimated size of the sample in X direction in um
+
+nIteration = 4; % Number of times the regions is being shrunk
 nSplit = 10;
 
-Treshold_region = [810, 830]; %in nm
+Treshold_region = [810, 830]; % Region of spectrum to use for thresholding in nm
+Threshold = 10/100; % Threshold of intensity in terms of percent of the max value in the ROI
 
 IntTime_region = 1e5; % integration time in terms of microsecond
 num_of_average_region = 2; %number of spectrums to take average of in each location, no average = 0
@@ -125,9 +127,13 @@ state_X = ximc_get_status(device_id_X);
 %% Move from sample center to starting position
 
 % Determine starting position
-start_position_Y = state_Y.CurPosition-LY/2;
+
+LX = round(Size_X/2.5);
+LY = round(Size_Y/2.5); 
+
+start_position_Y = state_Y.CurPosition-LY;
 start_uposition_Y = state_Y.uCurPosition;
-start_position_X = state_X.CurPosition-LX/2;
+start_position_X = state_X.CurPosition-LX;
 start_uposition_X = state_X.uCurPosition;
 
 % Make uPosition 0
@@ -141,10 +147,10 @@ result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
 pause(3)
 
-result = calllib('libximc','command_move', device_id_X, start_position_X+LX, start_uposition_X);
+result = calllib('libximc','command_move', device_id_X, start_position_X+2*LX, start_uposition_X);
 result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
 
-result = calllib('libximc','command_move', device_id_Y, start_position_Y+LY, start_uposition_Y);
+result = calllib('libximc','command_move', device_id_Y, start_position_Y+2*LY, start_uposition_Y);
 result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
 result = calllib('libximc','command_move', device_id_X, start_position_X, start_uposition_X);
@@ -155,8 +161,8 @@ result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
 %% Region Determination
 
-X = round(linspace(start_position_X, start_position_X + LX, nSplit));
-Y = round(linspace(start_position_Y, start_position_Y + LY, nSplit));
+X = round(linspace(start_position_X, start_position_X + 2 * LX, nSplit));
+Y = round(linspace(start_position_Y, start_position_Y + 2 * LY, nSplit));
 
 for Iter = 1:nIteration
     
@@ -185,36 +191,45 @@ for Iter = 1:nIteration
         
     end
     
-    figure
-    imagesc(Region)
-    caxis([min(min(Region)) 2500]) 
+    Region_mask = Region > max(max(Region))*Threshold;
+    
+    X_sum = sum(Region_mask, 1);
+
+    i = find(~X_sum==0, 1);
+    if i == 1
+        X_min = X(1);
+    else
+        X_min = X(i-1);
+    end
+
+    i = find(~X_sum==0, 1, 'last');
+    if i == nSplit
+        X_max = X(end);
+    else
+        X_max = X(i+1);
+    end
+
+    Y_sum = sum(Region_mask, 2);
+
+    i = find(~Y_sum==0, 1);
+    if i == 1
+        Y_min = Y(1);
+    else
+        Y_min = Y(i-1);
+    end
+
+    i = find(~Y_sum==0, 1, 'last');
+    if i == nSplit
+        Y_max = Y(end);
+    else
+        Y_max = Y(i+1);
+    end
+
+    subplot(1,nIteration,Iter)
+    imagesc(Region_mask)
     axis equal
     axis tight
-    h =  imrect();
-    clc; disp('To continue press enter:')
-    pause;
-    % Rectangle position is given as [xmin, ymin, width, height]
-    pos_rect = h.getPosition();
-    % Round off so the coordinates can be used as indices
-    pos_rect = [floor(pos_rect(1))+1, floor(pos_rect(2))+1, ceil(pos_rect(3))-1, ceil(pos_rect(4))-1];
-    close
-    
-    X_min = X(pos_rect(1));
-    X_max = X(min(pos_rect(1)+pos_rect(3),nSplit));
-    Y_min = Y(pos_rect(2));
-    Y_max = Y(min(pos_rect(2)+pos_rect(4),nSplit));
-    
-    Region_cropped = Region(pos_rect(2):min(pos_rect(2)+pos_rect(4),nSplit), pos_rect(1):min(pos_rect(1)+pos_rect(3),nSplit));
-    
-    figure
-    imagesc(Region_cropped)
-    caxis([min(min(Region)) 2500])
-    axis equal
-    axis tight
-    title('Cropped Region')
-    clc; disp('To continue press enter:')
-    pause;
-    close
+    title(sprintf('Iteration: %d',Iter))
     
     if Iter == nIteration-1
         nSplit = 2*nSplit;
