@@ -2,8 +2,8 @@ clear; close all; clc;
 %% Scanning Parameters
 % 1 step = 256 ustep | 1 step = 2.5 um
 
-StepSize = 20; % Step size to use after determining the region. In steps.
-IntTime = 3e5; % integration time in terms of microsecond
+StepSize = 8; % Step size to use after determining the region. In steps.
+IntTime = 2e5; % integration time in terms of microsecond
 num_of_average = 0; %number of spectrums to take average of in each location, no average = 0
 BoxcarWidth = 1;
 
@@ -12,15 +12,14 @@ uspeed = 1000; % steps / s
 
 %% Region Determination Parameters
 
-Size_X = 3000; % Estimated size of the sample in X direction in um
-Size_Y = 3000; % Estimated size of the sample in X direction in um
+Size_X = 2000; % Estimated size of the sample in X direction in um
+Size_Y = 2000; % Estimated size of the sample in X direction in um
 nSplit = 10;
 
-Treshold_region = [810, 830]; % Region of spectrum to use for thresholding in nm
-Threshold = 50; % Threshold of background corrected intensity in terms of percent of the max value in the ROI
+Treshold_region = [845, 855]; % Region of spectrum to use for thresholding in nm
 
 IntTime_region = 1e5; % integration time in terms of microsecond
-num_of_average_region = 1; %number of spectrums to take average of in each location, no average = 0
+num_of_average_region = 0; %number of spectrums to take average of in each location, no average = 0
 
 %% Spectrometer
 
@@ -117,11 +116,6 @@ ximc_set_microstep_256(device_id_X);
 ximc_set_speed(device_id_Y, speed , uspeed);
 ximc_set_speed(device_id_X, speed , uspeed);
 
-state_Y = ximc_get_status(device_id_Y);
-% disp('Status:'); disp(state_s1);
-state_X = ximc_get_status(device_id_X);
-% disp('Status:'); disp(state_s2);
-
 %% Move from sample center to starting position
 
 % Determine starting position
@@ -129,207 +123,232 @@ state_X = ximc_get_status(device_id_X);
 LX = round(Size_X/2.5);
 LY = round(Size_Y/2.5);
 
-start_position_Y = state_Y.CurPosition-LY;
-start_uposition_Y = state_Y.uCurPosition;
-start_position_X = state_X.CurPosition-LX;
-start_uposition_X = state_X.uCurPosition;
+state_Y = ximc_get_status(device_id_Y);
+state_X = ximc_get_status(device_id_X);
 
-% Make uPosition 0
-result = calllib('libximc','command_move', device_id_X, start_position_X, 0);
-result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+center_position_Y = state_Y.CurPosition;
+center_uposition_Y = state_Y.uCurPosition;
+center_position_X = state_X.CurPosition;
+center_uposition_X = state_X.uCurPosition;
 
-result = calllib('libximc','command_move', device_id_Y, start_position_Y, 0);
+result = calllib('libximc','command_move', device_id_Y, center_position_Y, center_uposition_Y);
 result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
 
-%% Show region - to see if there is any part of the sample outside
-
-pause(3)
-
-result = calllib('libximc','command_move', device_id_X, start_position_X+2*LX, start_uposition_X);
+result = calllib('libximc','command_move', device_id_X, center_position_X, center_uposition_X);
 result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
 
-result = calllib('libximc','command_move', device_id_Y, start_position_Y+2*LY, start_uposition_Y);
-result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+%% Show region - to see if there is any part of the sample outside and select treshold
 
-result = calllib('libximc','command_move', device_id_X, start_position_X, start_uposition_X);
-result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+tic
 
-result = calllib('libximc','command_move', device_id_Y, start_position_Y, start_uposition_Y);
-result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+X_min = center_position_X - LX;
+X_max = center_position_X + LX;
 
-%% Region Determination
-
-X_min = start_position_X;
-X_max = start_position_X + 2 * LX;
-
-Y_min = start_position_Y;
-Y_max = start_position_Y + 2 * LY;
+Y_min = center_position_Y - LY;
+Y_max = center_position_Y + LY;
 
 X = round(linspace(X_min, X_max, nSplit));
 Y = round(linspace(Y_min, Y_max, nSplit));
-
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
 background = wrapper.getSpectrum(0)';
-signal = 0;
-
-for y = 1:nSplit
-    
-    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
-    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
-    
-    for x = 1:nSplit
-        
-        result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
-        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
-        
-        spectrum = wrapper.getSpectrum(0)';
-        spectrum = spectrum - background;
-        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
-        
-        if floor(abs(spectrum)) > Threshold
-            Y_min = Y(y-1)
-            signal = 1;
-            break
-        end
-    end
-    if signal
-        break
-    end
-    X = flip(X);
-end
-
-Y = round(linspace(Y_min, Y_max, nSplit));
-signal = 0;
-
-for y = nSplit:-1:1
-    
-    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
-    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
-    
-    for x = 1:nSplit
-        
-        result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
-        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
-        
-        spectrum = wrapper.getSpectrum(0)';
-        spectrum = spectrum - background;
-        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
-        
-        if floor(abs(spectrum)) > Threshold
-            Y_max = Y(y+1)
-            signal = 1;
-            break
-        end
-    end
-    if signal
-        break
-    end
-    X = flip(X);
-end
-
-Y = round(linspace(Y_min, Y_max, nSplit));
-X = round(linspace(X_min, X_max, nSplit));
-signal = 0;
-
-for x = 1:nSplit
-    
-    result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
-    result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
-    
-    for y = 1:nSplit
-        
-        result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
-        result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
-        
-        spectrum = wrapper.getSpectrum(0)';
-        spectrum = spectrum - background;
-        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
-        
-        if floor(abs(spectrum)) > Threshold
-            X_min = X(x-1)
-            signal = 1;
-            break
-        end
-    end
-    if signal
-        break
-    end
-    Y = flip(Y);
-end
-
-X = round(linspace(X_min, X_max, nSplit));
-signal = 0;
-
-for x = nSplit:-1:1
-    
-    result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
-    result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
-    
-    for y = 1:nSplit
-        
-        result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
-        result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
-        
-        spectrum = wrapper.getSpectrum(0)';
-        spectrum = spectrum - background;
-        spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
-        
-        if floor(abs(spectrum)) > Threshold
-            X_max = X(x+1)
-            signal = 1;
-            break
-        end
-    end
-    if signal
-        break
-    end
-    Y = flip(Y);
-end
-
-X = round(linspace(X_min, X_max, nSplit));
-Y = round(linspace(Y_min, Y_max, nSplit));
-
-clc; fprintf("Starting position: X = %d, Y = %d\n", X_min, Y_min)
-fprintf("Number of steps X = %d ; Number of steps Y = %d\n", ceil((X_max-X_min)/StepSize), ceil((Y_max-Y_min)/StepSize))
-
-clear h i Iter pos_rect Region Region_cropped result spectrum x X y Y X_delta Y_delta
-
-%% Fast Preliminary Scanning of The Determined Region
-
-X = X_min: StepSize*2 : X_max;
-Y = Y_min: StepSize*2 : Y_max;
-spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+% background = zeros(1,length(spectrum));
 
 Map = nan(length(Y),length(X));
 
 for y = 1:length(Y)
     clc; disp(round(100*y/length(Y)))
+    
+    result = calllib('libximc','command_move', device_id_Y, Y(y), center_uposition_Y);
+    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+    
     for x = 1:length(X)
         
-        result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
+        result = calllib('libximc','command_move', device_id_X, X(x),center_uposition_X);
         result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
         
         spectrum = wrapper.getSpectrum(0)';
+        spectrum = spectrum - background;
         
+        Map(y,x) = round(mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2)))));
+    end
+    if mod(y,2)==0
+        Map(y,:) = flip(Map(y,:));
+    end
+    X = flip(X);
+end
+
+subplot(1,2,1)
+imagesc(Map)
+set(gcf, 'Position', get(0, 'Screensize'));
+
+list = unique(Map);
+h = subplot(1,2,2);
+plot(list)
+[i,~] = getpts(h);
+Threshold = list(round(i))
+
+close all
+
+% Region Determination
+
+for iteration = 1:2
+    
+    X = round(linspace(X_min, X_max, nSplit));
+    Y = round(linspace(Y_min, Y_max, nSplit));
+    spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+    signal = 0;
+    
+    for y = 1:nSplit
+        
+        result = calllib('libximc','command_move', device_id_Y, Y(y), center_uposition_Y);
+        result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+        
+        for x = 1:nSplit
+            
+            result = calllib('libximc','command_move', device_id_X, X(x), center_uposition_X);
+            result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+            
+            spectrum = wrapper.getSpectrum(0)';
+            spectrum = spectrum - background;
+            spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+            
+            if round(spectrum) > Threshold
+                Y_min = Y(y-1)
+                signal = 1;
+                break
+            end
+        end
+        if signal
+            break
+        end
+        X = flip(X);
+    end
+    
+    Y = round(linspace(Y_min, Y_max, nSplit));
+    signal = 0;
+    
+    for y = nSplit:-1:1
+        
+        result = calllib('libximc','command_move', device_id_Y, Y(y), center_uposition_Y);
+        result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+        
+        for x = 1:nSplit
+            
+            result = calllib('libximc','command_move', device_id_X, X(x), center_uposition_X);
+            result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+            
+            spectrum = wrapper.getSpectrum(0)';
+            spectrum = spectrum - background;
+            spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+            
+            if round(spectrum) > Threshold
+                Y_max = Y(y+1)
+                signal = 1;
+                break
+            end
+        end
+        if signal
+            break
+        end
+        X = flip(X);
+    end
+    
+    Y = round(linspace(Y_min, Y_max, nSplit));
+    X = round(linspace(X_min, X_max, nSplit));
+    signal = 0;
+    
+    for x = 1:nSplit
+        
+        result = calllib('libximc','command_move', device_id_X, X(x), center_uposition_X);
+        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+        
+        for y = 1:nSplit
+            
+            result = calllib('libximc','command_move', device_id_Y, Y(y), center_uposition_Y);
+            result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+            
+            spectrum = wrapper.getSpectrum(0)';
+            spectrum = spectrum - background;
+            spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+            
+            if round(spectrum) > Threshold
+                X_min = X(x-1)
+                signal = 1;
+                break
+            end
+        end
+        if signal
+            break
+        end
+        Y = flip(Y);
+    end
+    
+    X = round(linspace(X_min, X_max, nSplit));
+    signal = 0;
+    
+    for x = nSplit:-1:1
+        
+        result = calllib('libximc','command_move', device_id_X, X(x), center_uposition_X);
+        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+        
+        for y = 1:nSplit
+            
+            result = calllib('libximc','command_move', device_id_Y, Y(y), center_uposition_Y);
+            result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+            
+            spectrum = wrapper.getSpectrum(0)';
+            spectrum = spectrum - background;
+            spectrum = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
+            
+            if round(spectrum) > Threshold
+                X_max = X(x+1)
+                signal = 1;
+                break
+            end
+        end
+        if signal
+            break
+        end
+        Y = flip(Y);
+    end
+    
+end
+
+% Fast Preliminary Scanning of The Determined Region
+
+X = round(linspace(X_min, X_max, nSplit));
+Y = round(linspace(Y_min, Y_max, nSplit));
+spectrum = wrapper.getSpectrum(0)'; %trash spectrum
+Map = nan(length(Y),length(X));
+
+for y = 1:length(Y)
+    clc; disp(round(100*y/length(Y)))
+    
+    result = calllib('libximc','command_move', device_id_Y, Y(y), center_uposition_Y);
+    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+    
+    for x = 1:length(X)
+        
+        result = calllib('libximc','command_move', device_id_X, X(x), center_uposition_X);
+        result = calllib('libximc','command_wait_for_stop',device_id_X, 10);
+        
+        spectrum = wrapper.getSpectrum(0)';
+        spectrum = spectrum - background;
         Map(y,x) = mean(spectrum(and(wl>=Treshold_region(1), wl<=Treshold_region(2))));
     end
     if mod(y,2)==0
         Map(y,:) = flip(Map(y,:));
     end
     X = flip(X);
-    
-    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
-    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
-    
 end
 
 figure
-imagesc(Map)
-caxis([min(Map(~isoutlier(Map))) max(Map(~isoutlier(Map)))])
-pbaspect([length(X) length(Y) 1])
+surf(round(Map))
 
-clear x X y Y spectrum
+clc; fprintf("Starting position: X = %d, Y = %d\n", X_min, Y_min)
+fprintf("Number of steps X = %d ; Number of steps Y = %d\n", ceil((X_max-X_min)/StepSize), ceil((Y_max-Y_min)/StepSize))
 
+toc
 %% Scanning
 
 [FileName,PathName] = uiputfile('C:\Users\PAM\Desktop\raman measurements');
@@ -354,6 +373,10 @@ set(gcf, 'Position', get(0, 'Screensize'));
 tic
 for y = 1:length(Y)
     clc; disp(round(100*y/length(Y)))
+    
+    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
+    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
+    
     for x = 1:length(X)
         
         result = calllib('libximc','command_move', device_id_X, X(x), start_uposition_X);
@@ -375,10 +398,6 @@ for y = 1:length(Y)
         RawData(y,:,:) = flip(RawData(y,:,:));
     end
     X = flip(X);
-    
-    result = calllib('libximc','command_move', device_id_Y, Y(y), start_uposition_Y);
-    result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
-    
 end
 
 save(fullfile(PathName,[FileName, '.mat']), 'wl', 'RawData', 'StepSize','IntTime')
