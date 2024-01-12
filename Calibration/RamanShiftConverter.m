@@ -1,4 +1,4 @@
-function [spec] = RamanShiftConverter(dataSize,spec)
+function [spec] = RamanShiftConverter(spec)
 
 %interval in which Rayleigh fit happens
 Rx=spec(1,1:10,1);

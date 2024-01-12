@@ -53,7 +53,7 @@ for k = 1:n_dir
     CalInt = zeros(dataSize, 2851);
 
     parfor i=1:dataSize
-        RSspec = RamanShiftConverter(dataSize, spec(i,:,:));
+        RSspec = RamanShiftConverter(spec(i,:,:));
         [Calx(i,:), CalInt(i,:)] = AxisCorr(RSspec);
     end
     Calx = Calx(1,:);
