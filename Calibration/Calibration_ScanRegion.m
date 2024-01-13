@@ -8,7 +8,6 @@ alarm = true;
 
 %% Selecting folders
 
-disp('Selected files:')
 [Files, Path] = uigetfile('*.mat', sprintf('Select data files'), 'MultiSelect', 'on');
 
 %% Calibration
@@ -29,7 +28,9 @@ for k = 1:length(Files)
     parfor i=1:DS1
         for j=1:DS2
 
-            spec = reshape([wl'; reshape(RawData(i,j,:), 1, 1044)], 1, 1044, 2);
+            spec = nan(1,1044,2);
+            spec(1,:,1) = wl;
+            spec(1,:,2) = reshape(RawData(i,j,:), 1, 1044);
             RSspec = RamanShiftConverter(spec);
             [~, CalInt(i,j,:)] = AxisCorr(RSspec);
 
