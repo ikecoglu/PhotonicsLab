@@ -4,12 +4,13 @@ if isempty(gcp('nocreate')); parpool; end
 %% Parameters - User input
 
 n_file = 4; %number of mat files to be selected
-Cut = [200, 1800];
+Cut = [240, 700];
 Polynomial_order = 5;
+UseBackground = false;
 
 PlotFigures = true;
 SavePNG = true;
-SaveFig = false;
+SaveFig = true;
 
 SaveCSV = false;
 
@@ -17,14 +18,20 @@ Alarm = false;
 
 %% Load background data
 
-disp('Select the background data.')
-[name, path] = uigetfile('*.mat');
-fprintf('Background: %s\n', name)
-load(fullfile(path,name))
-Background = mean(CalInt, 1);
-Splited = split(path, filesep);
-name = char(Splited(end));
-pathup = path(1:end-length(name));
+if UseBackground
+    disp('Select the background data.')
+    [name, path] = uigetfile('*.mat');
+    fprintf('Background: %s\n', name)
+    load(fullfile(path,name))
+    Background = mean(CalInt, 1);
+    Splited = split(path, filesep);
+    name = char(Splited(end));
+    pathup = path(1:end-length(name));
+else
+    Background = zeros(1,Cut(2)-Cut(1)+1);
+    Calx = [Cut(1):Cut(2)];
+    pathup = '~/';
+end
 
 %% Selecting folders
 
@@ -49,22 +56,37 @@ Background = Background(indx_s:indx_f);
 
 for k = 1:n_file
 
+    clc; fprintf('%d/%d', k, n_file)
+
     path = paths{k};
     filenamepath = path(1:end-4);
     load(path)
 
     % Cutting data based on base points
-
+    
+    indx_s = find(Calx==Cut(1));
+    indx_f = find(Calx==Cut(end));
     CalInt = CalInt(:, indx_s:indx_f);
     Calx = Calx(:, indx_s:indx_f);
+
+    % Base correction
+
+    DataSize = size(CalInt, 1);
+    BCInt = nan(DataSize, length(Calx));
+    parfor i = 1:DataSize
+        BCInt(i,:) = RemoveBackground(CalInt(i,:), Background, Polynomial_order);
+    end
 
     % Plotting CAL data
 
     if PlotFigures
         figure
         plot(Calx, CalInt);
+        hold on,
+        plot(Calx, CalInt-BCInt, 'r')
         xlabel('Raman Shift (cm^{-1})', 'FontSize', 18)
         ylabel('Raman Intensity (a.u.)', 'FontSize', 18)
+        xlim("tight")
         box on
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('CAL spectra')
@@ -78,19 +100,12 @@ for k = 1:n_file
         close;
     end
 
-    % Base correction
-
-    DataSize = size(CalInt, 1);
-    BCInt = nan(DataSize, length(Calx));
-    parfor i = 1:DataSize
-        BCInt(i,:) = RemoveBackground(CalInt(i,:), Background, Polynomial_order);
-    end
-
     if PlotFigures
         figure
         plot(Calx, BCInt);
         xlabel('Raman Shift (cm^{-1})', 'FontSize', 18)
         ylabel('Raman Intensity (a.u.)', 'FontSize', 18)
+        xlim("tight")
         box on
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('BC spectra')
@@ -113,6 +128,7 @@ for k = 1:n_file
         plot(Calx, NormInt);
         xlabel('Raman Shift (cm^{-1})', 'FontSize', 18)
         ylabel('Raman Intensity (a.u.)', 'FontSize', 18)
+        xlim("tight")
         box on
         set(gca, 'FontSize', 14, 'LineWidth',2)
         title('NORM spectra')
@@ -152,7 +168,7 @@ for k = 1:n_file
     end
 end
 
-disp('Done!')
+clc; disp('Done!')
 
 %% Alarm
 
