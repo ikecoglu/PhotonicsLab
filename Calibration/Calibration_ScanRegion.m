@@ -9,6 +9,7 @@ alarm = true;
 %% Selecting folders
 
 [Files, Path] = uigetfile('*.mat', sprintf('Select data files'), 'MultiSelect', 'on');
+Files = cellstr(string(Files));
 
 %% Calibration
 

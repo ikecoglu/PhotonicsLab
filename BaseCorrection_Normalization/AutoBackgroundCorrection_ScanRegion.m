@@ -10,9 +10,9 @@ UseBackground = false;
 PlotFigures = true; % Plot a random sample of the data
 nSampling = 20;
 SavePNG = true;
-SaveFig = true;
+SaveFig = false;
 
-Alarm = false;
+Alarm = true;
 
 %% Load background data
 
@@ -34,6 +34,7 @@ end
 %% Selecting files
 
 [Files, Path] = uigetfile('*_CAL.mat','MultiSelect','on');
+Files = cellstr(string(Files));
 
 %% Cutting background
 
@@ -47,9 +48,7 @@ for k = 1:length(Files)
 
     clc; fprintf('%d/%d', k, length(Files))
 
-    
     load(fullfile(Path,Files{k}));
-    
     name = Files{k}(1:end-8);
     filenamepath = fullfile(Path, name);
 
