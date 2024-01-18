@@ -3,7 +3,7 @@ clear; close all; clc;
 % 1 step = 256 ustep | 1 step = 2.5 um
 
 StepSize = 8; % Step size to use after determining the region. In steps.
-IntTime = 2e5; % integration time in terms of microsecond
+IntTime = 6e5; % integration time in terms of microsecond
 num_of_average = 0; %number of spectrums to take average of in each location, no average = 0
 BoxcarWidth = 1;
 ROI = [800 950]; % ROI for plotting while scanning in nm
@@ -13,8 +13,8 @@ uspeed = 1000; % steps / s
 
 %% Region Determination Parameters
 
-Size_X = 3000; % Estimated size of the sample in X direction in um
-Size_Y = 3000; % Estimated size of the sample in X direction in um
+Size_X = 2000; % Estimated size of the sample in X direction in um
+Size_Y = 2000; % Estimated size of the sample in X direction in um
 nSplit = 10;
 
 Treshold_region = [845, 855]; % Region of spectrum to use for thresholding in nm
@@ -379,6 +379,7 @@ wrapper.setIntegrationTime(0,IntTime);
 
 X = X_min: StepSize : X_max;
 Y = Y_min: StepSize : Y_max;
+DataSize = length(X)*length(Y);
 
 spectrum = wrapper.getSpectrum(0)'; %trash spectrum
 RawData = nan(length(Y), length(X), length(wl));
@@ -389,8 +390,8 @@ figure
 set(gcf, 'Position', get(0, 'Screensize'));
 
 tic
+Counter = 1;
 for y = 1:length(Y)
-    clc; disp(round(100*y/length(Y)))
     
     result = calllib('libximc','command_move', device_id_Y, Y(y), center_uposition_Y);
     result = calllib('libximc','command_wait_for_stop',device_id_Y, 10);
@@ -411,6 +412,9 @@ for y = 1:length(Y)
         pause(0.0001)
         
         RawData(y,x,:) = spectrum;
+        
+        EstimatedTimeLeft(DataSize, Counter)
+        Counter = Counter + 1;
     end
     if mod(y,2)==0
         RawData(y,:,:) = flip(RawData(y,:,:));
