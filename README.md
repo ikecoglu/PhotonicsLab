@@ -21,7 +21,7 @@ MATLAB scripts for Raman spectroscopy acquisition, calibration, preprocessing, m
 
 ## Requirements
 
-- MATLAB
+- MATLAB (no minimum version is pinned in the repository; use a release compatible with your installed OmniDriver and toolbox setup)
 - Parallel Computing Toolbox for scripts that call `parpool`
 - Ocean Optics OmniDriver support for spectrometer access (`com.oceanoptics.omnidriver.api.wrapper.Wrapper`)
 - Standa XIMC libraries for stage control (`libximc`, headers, and wrapper files are bundled here for Windows-focused workflows)
